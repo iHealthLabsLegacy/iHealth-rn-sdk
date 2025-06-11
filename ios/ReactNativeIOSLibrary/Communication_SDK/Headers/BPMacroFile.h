@@ -134,6 +134,8 @@ typedef void(^BlockMeasureStatus)(NSDictionary *statusDict);
 
 typedef void(^BlockDisplayStatus)(NSDictionary *statusDict);
 
+typedef void(^BlockDeviceIDPS)(NSDictionary *idpsDict);
+
 
 #define BP3ConnectNoti      @"BP3ConnectNoti"
 #define BP3DisConnectNoti   @"BP3DisConnectNoti"
@@ -166,6 +168,12 @@ typedef void(^BlockDisplayStatus)(NSDictionary *statusDict);
 #define KN550BTConnectFailed   @"KN550BTConnectFailed"
 #define KN550BTConnectNoti  @"KN550BTConnectNoti"
 #define KN550BTDisConnectNoti  @"KN550BTDisConnectNoti"
+
+
+#define KN550LTDiscover     @"KN550LTDiscover"
+#define KN550LTConnectFailed   @"KN550LTConnectFailed"
+#define KN550LTConnectNoti  @"KN550LTConnectNoti"
+#define KN550LTDisConnectNoti  @"KN550LTDisConnectNoti"
 
 #define KD926Discover       @"KD926Discover"
 #define KD926ConnectFailed  @"KD926ConnectFailed"

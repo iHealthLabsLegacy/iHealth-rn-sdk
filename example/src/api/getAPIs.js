@@ -5,6 +5,7 @@ import bg5sAPI from './bg5sAPI'
 import hs2sAPI from './hs2sAPI'
 import hs2sProAPI from './hs2sProAPI'
 import bp5sAPI from './bp5sAPI'
+import bg1sAPI from './bg1sAPI'
 import {
   BG1AModule,
   BP550BTModule,
@@ -12,7 +13,8 @@ import {
   BG5SModule,
   HS2SModule,
   HS2SProModule,
-  BP5SModule
+  BP5SModule,
+  BG1SModule
 } from '@ihealth/ihealthlibrary-react-native'
 
 export default {
@@ -39,6 +41,8 @@ export default {
 
       case 'BP5S':
         return BP5SModule.Event_Notify
+      case 'BG1S':
+        return BG1SModule.Event_Notify
     }
   },
 
@@ -64,7 +68,8 @@ export default {
 
       case 'BP5S':
         return bp5sAPI
-
+      case 'BG1S':
+        return bg1sAPI
     }
   }
 }

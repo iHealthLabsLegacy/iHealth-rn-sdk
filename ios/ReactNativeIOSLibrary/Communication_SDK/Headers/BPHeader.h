@@ -57,4 +57,7 @@
 
 #import "KD5811BT.h"
 #import "KD5811BTController.h"
+
+#import "KN550LT.h"
+#import "KN550LTController.h"
 #endif
