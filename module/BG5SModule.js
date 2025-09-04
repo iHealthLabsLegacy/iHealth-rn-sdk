@@ -116,7 +116,7 @@ module.exports = {
 
     setOfflineModel: function (mac, enable) {
         if (RCTModule != null) {
-            RCTModule.getAllConnectedDevices(mac, enable);
+            RCTModule.setOfflineModel(mac, enable);
         } else {
             console.log('~~~~~ BG5S adjustOfflineData RCTModule is null')
         }

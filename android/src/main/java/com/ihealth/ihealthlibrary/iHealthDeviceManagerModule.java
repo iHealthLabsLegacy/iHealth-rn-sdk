@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.text.TextUtils;
 import android.util.Log;
+import android.os.Build;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Callback;
@@ -540,7 +541,12 @@ public class iHealthDeviceManagerModule extends iHealthBaseModule implements Lif
         intentFilter.addAction(Bg1Profile.ACTION_BG1_MEASURE_GET_BLOOD);
         intentFilter.addAction(Bg1Profile.ACTION_BG1_MEASURE_STRIP_OUT);
         intentFilter.addAction(Bg1Profile.ACTION_BG1_IDPS);
-        mContext.registerReceiver(broadcastReceiver, intentFilter);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            mContext.registerReceiver(broadcastReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            mContext.registerReceiver(broadcastReceiver, intentFilter);
+        }
         mBroadcastReceiverRegistered = true;
     }
 

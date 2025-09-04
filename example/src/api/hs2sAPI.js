@@ -19,6 +19,6 @@ export default {
     setDeviceLightUp:    (mac) => HS2SModule.setDeviceLightUp(mac),
     enterHS2SHeartRateMeasurementMode: (mac) => HS2SModule.enterHS2SHeartRateMeasurementMode(mac),
     exitHS2SHeartRateMeasurementMode:  (mac) => HS2SModule.exitHS2SHeartRateMeasurementMode(mac),
-    disConnect:          (mac) => BG5SModule.disConnect(mac)
+    disconnect:          (mac) => HS2SModule.disconnect(mac)
   }
 }
