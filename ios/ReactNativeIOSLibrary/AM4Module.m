@@ -15,9 +15,13 @@
 #define EVENT_NOTIFY @"event_notify_am4"
 
 @implementation AM4Module
-@synthesize bridge = _bridge;
 
 RCT_EXPORT_MODULE()
+
+- (NSArray<NSString *> *)supportedEvents {
+    return @[EVENT_NOTIFY];
+}
+
 - (NSDictionary *)constantsToExport
 {
     return @{
@@ -35,7 +39,7 @@ RCT_EXPORT_MODULE()
 #pragma mark - Init
 -(id)init
 {
-    if (self=[super init])
+    if (self=[super initWithDisabledObservation])
     {
         
         [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(DeviceConnectForAM4:) name:AM4ConnectNoti object:nil];
@@ -99,7 +103,7 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
     
     NSDictionary* deviceInfo = @{@"action":@"ACTION_GET_ALL_CONNECTED_DEVICES",@"devices":deviceMacArray};
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
     
     
 }
@@ -113,12 +117,12 @@ RCT_EXPORT_METHOD(reset:(nonnull NSString *)mac){
         [[self getAM4WithMac:mac] commandAM4ResetDevice:^(BOOL resetSuc) {
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"reset_am",@"reset":[NSNumber numberWithInteger:resetSuc]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withErrorBlock:^(AM4ErrorID errorID) {
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -131,12 +135,12 @@ RCT_EXPORT_METHOD(getUserId:(nonnull NSString *)mac){
         [[self getAM4WithMac:mac] commandAM4GetDeviceUserID:^(unsigned int userID) {
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"userid_am",@"userid":[NSNumber numberWithInteger:userID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withErrorBlock:^(AM4ErrorID errorID) {
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
         
      }
@@ -150,11 +154,11 @@ RCT_EXPORT_METHOD(setUserId:(nonnull NSString *)mac :(nonnull NSNumber *)uesrID)
         [[self getAM4WithMac:mac] commandAM4SetUserID:uesrID withFinishResult:^(BOOL resetSuc) {
 
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"set_userid_success_am"};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withErrorBlock:^(AM4ErrorID errorID) {
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -167,11 +171,11 @@ RCT_EXPORT_METHOD(syncRealTime:(nonnull NSString *)mac){
         [[self getAM4WithMac:mac] commandAM4SyncTime:^(BOOL resetSuc) {
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"set_sync_time_success_am"};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         } withErrorBlock:^(AM4ErrorID errorID) {
 
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -192,7 +196,7 @@ RCT_EXPORT_METHOD(setUserInfo:(nonnull NSString *)mac :(nonnull NSNumber *)age :
         [[self getAM4WithMac:mac] commandAM4SetUserInfo:myUser withUnit:unit withActiveGoal:target withSwimmingGoal:min withSetUserInfoFinishResult:^(BOOL resetSuc) {
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"set_userinfo_success_am"};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withSetBMR:^(BOOL resetSuc) {
            
@@ -200,7 +204,7 @@ RCT_EXPORT_METHOD(setUserInfo:(nonnull NSString *)mac :(nonnull NSNumber *)age :
         } withErrorBlock:^(AM4ErrorID errorID) {
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -218,12 +222,12 @@ RCT_EXPORT_METHOD(getUserInfo:(nonnull NSString *)mac){
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"get_userinfo_am",@"age":[userInfo valueForKey:@"Age"],@"step":[userInfo valueForKey:@"Step"],@"height":[userInfo valueForKey:@"Height"],@"gender":[userInfo valueForKey:@"Gender"],@"weight":[userInfo valueForKey:@"Weight"],@"unit":[userInfo valueForKey:@"Unit"],@"target1":[userInfo valueForKey:@"TotalStep1"],@"target2":[userInfo valueForKey:@"TotalStep2"],@"target3":[userInfo valueForKey:@"TotalStep3"],@"swim_target":swimGoal};
 
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withErrorBlock:^(AM4ErrorID errorID) {
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -245,12 +249,12 @@ RCT_EXPORT_METHOD(getAlarmClockNum:(nonnull NSString *)mac){
             }
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"get_alarmnum_am",@"alarmclocknumber":[NSNumber numberWithInt:IDArray.count],@"alarmclocknumberid":IDArray};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withErrorBlock:^(AM4ErrorID errorID) {
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -309,11 +313,11 @@ RCT_EXPORT_METHOD(getAlarmClockDetail:(nonnull NSString *)mac :(nonnull NSArray 
             }
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"get_alarminfo_am",@"alarmclockdetail":alarmInfoArray};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withErrorBlock:^(AM4ErrorID errorID) {
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -328,7 +332,7 @@ RCT_EXPORT_METHOD(setAlarmClock:(nonnull NSString *)mac :(nonnull NSNumber *)ala
            min.integerValue > 59 || min.integerValue < 0){
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:400]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             return;
         }
         
@@ -345,11 +349,11 @@ RCT_EXPORT_METHOD(setAlarmClock:(nonnull NSString *)mac :(nonnull NSNumber *)ala
         [[self getAM4WithMac:mac] commandAM4SetAlarmDictionary:dic withFinishResult:^(BOOL resetSuc) {
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"set_alarminfo_success_am"};
 
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withErrorBlock:^(AM4ErrorID errorID) {
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -362,11 +366,11 @@ RCT_EXPORT_METHOD(deleteAlarmClock:(nonnull NSString *)mac :(nonnull NSNumber *)
         [[self getAM4WithMac:mac] commandAM4DeleteAlarmID:alarmID withFinishResult:^(BOOL resetSuc) {
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"delete_alarm_success_am"};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withErrorBlock:^(AM4ErrorID errorID) {
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -390,11 +394,11 @@ RCT_EXPORT_METHOD(getActivityRemind:(nonnull NSString *)mac){
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"get_activity_remind_am",@"time":dateString,@"switch":[dic valueForKey:@"Switch"]};
 
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withErrorBlock:^(AM4ErrorID errorID) {
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -410,7 +414,7 @@ RCT_EXPORT_METHOD(setActivityRemind:(nonnull NSString *)mac :(nonnull NSNumber *
            min.integerValue > 59 || min.integerValue < 0){
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:400]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             return;
         }
         
@@ -429,10 +433,10 @@ RCT_EXPORT_METHOD(setActivityRemind:(nonnull NSString *)mac :(nonnull NSNumber *
         [[self getAM4WithMac:mac] commandAM4SetReminderDictionary:dic withFinishResult:^(BOOL resetSuc) {
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"set_activityremind_success_am"};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         } withErrorBlock:^(AM4ErrorID errorID) {
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -476,14 +480,14 @@ RCT_EXPORT_METHOD(syncActivityData:(nonnull NSString *)mac){
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"sync_activity_data_am",@"activity":array};
 
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withActiveFinishTransmission:^{
           
             
         } withErrorBlock:^(AM4ErrorID errorID) {
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -531,14 +535,14 @@ RCT_EXPORT_METHOD(syncSleepData:(nonnull NSString *)mac){
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"sync_sleep_data_am",@"sleep":array};
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
 
             
         } withSleepFinishTransmission:^{
             
         } withErrorBlock:^(AM4ErrorID errorID) {
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -653,7 +657,7 @@ RCT_EXPORT_METHOD(syncStageReportData:(nonnull NSString *)mac){
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"sync_stage_data_am",@"stage_data":lastArray};
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
 
             
         } withStageDataFinishTransmission:^(BOOL resetSuc) {
@@ -664,7 +668,7 @@ RCT_EXPORT_METHOD(syncStageReportData:(nonnull NSString *)mac){
         } withErrorBlock:^(AM4ErrorID errorID) {
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -677,11 +681,11 @@ RCT_EXPORT_METHOD(syncRealData:(nonnull NSString *)mac){
         [[self getAM4WithMac:mac] commandAM4StartSyncCurrentActiveData:^(NSDictionary *activeDictionary) {
 
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"sync_real_data_am",@"step":[activeDictionary valueForKey:@"Step"],@"calorie":[activeDictionary valueForKey:@"Calories"],@"totalcalories":[activeDictionary valueForKey:@"TotalCalories"]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withErrorBlock:^(AM4ErrorID errorID) {
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -700,11 +704,11 @@ RCT_EXPORT_METHOD(queryAMState:(nonnull NSString *)mac){
         } withBattery:^(NSNumber *battery) {
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"query_state_am",@"query_state":[NSNumber numberWithInteger:index],@"battery":battery};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         
         } withErrorBlock:^(AM4ErrorID errorID) {
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -718,11 +722,11 @@ RCT_EXPORT_METHOD(setUserBmr:(nonnull NSString *)mac :(nonnull NSNumber *)bmr){
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"set_bmr_success_am"};
 
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
 
         } withErrorBlock:^(AM4ErrorID errorID) {
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -735,10 +739,10 @@ RCT_EXPORT_METHOD(sendRandom:(nonnull NSString *)mac){
         [[self getAM4WithMac:mac] commandAM4SetRandomNumber:^(NSString *randomNumString) {
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"get_random_am",@"random":randomNumString};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         } withErrorBlock:^(AM4ErrorID errorID) {
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -751,10 +755,10 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString *)mac){
         [[self getAM4WithMac:mac] commandAM4Disconnect:^(BOOL resetSuc) {
             
             NSDictionary* deviceInfo = @{@"mac":mac};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         } withErrorBlock:^(AM4ErrorID errorID) {
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -775,11 +779,11 @@ RCT_EXPORT_METHOD(setSwimPara:(nonnull NSString *)mac :(nonnull BOOL *)isOpen :(
         [[self getAM4WithMac:mac] commandAM4SetSwimmingState:isOpen withSwimmingPoolLength:poolLength withNOSwimmingTime:date withUnit:unit.integerValue withFinishResult:^(BOOL resetSuc) {
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"set_swiminfo_am"};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         } withErrorBlock:^(AM4ErrorID errorID) {
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         }];
     }
@@ -797,10 +801,10 @@ RCT_EXPORT_METHOD(checkSwimPara:(nonnull NSString *)mac){
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"get_swiminfo_am",@"get_swimlane_length":swimmingLaneLength,@"get_swim_unit_am":[NSNumber numberWithInt:unit],@"get_swim_switch_am":@"swimmingIsOpen",@"get_swim_cutout_hour_am":[NSNumber numberWithInt:hour],@"get_swim_cutout_min_am":[NSNumber numberWithInt:min]};
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         } withErrorBlock:^(AM4ErrorID errorID) {
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
@@ -816,12 +820,12 @@ RCT_EXPORT_METHOD(setHourMode:(nonnull NSString *)mac :(nonnull  NSNumber *)hour
         [[self getAM4WithMac:mac] commandAM4SetTimeFormatAndNation:formatAndNation withFinishResult:^(BOOL resetSuc) {
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"set_hour_mode_success_am"};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withErrorBlock:^(AM4ErrorID errorID) {
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
      
     }
@@ -835,13 +839,14 @@ RCT_EXPORT_METHOD(getHourMode:(nonnull NSString *)mac){
         [[self getAM4WithMac:mac] commandAM4GetTimeFormatAndNation:^(AM4TimeFormatAndNation timeFormatAndNation) {
             
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"get_hour_mode_am",@"hourtype":[NSNumber numberWithInt:timeFormatAndNation]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         } withErrorBlock:^(AM4ErrorID errorID) {
             NSDictionary* deviceInfo = @{@"mac":mac,@"action":@"error_am",@"error":[NSNumber numberWithInteger:errorID]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 }
+
 
 
 @end

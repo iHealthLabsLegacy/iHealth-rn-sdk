@@ -23,8 +23,10 @@ import javax.annotation.Nullable;
 /**
  * Created by zhaoyongguang on 29/11/2016.
  */
-@ReactModule(name = "BG1Module")
+@ReactModule(name = BG1Module.MODULE_NAME)
 public class BG1Module extends iHealthBaseModule {
+    public static final String MODULE_NAME = "BG1Module";
+
     private static final String TAG = BG1Module.class.getSimpleName();
     private static final String moduleName = BG1Module.class.getSimpleName();
     private static final String EVENT_NOTIFY = "event_notify_bg1";
@@ -35,7 +37,7 @@ public class BG1Module extends iHealthBaseModule {
 
     @Override
     public String getName() {
-        return moduleName;
+        return MODULE_NAME;
     }
 
 //    @ReactMethod
@@ -113,4 +115,10 @@ public class BG1Module extends iHealthBaseModule {
 
         return constants;
     }
+
+    @ReactMethod
+    public void addListener(String eventName) {}
+
+    @ReactMethod
+    public void removeListeners(double count) {}
 }

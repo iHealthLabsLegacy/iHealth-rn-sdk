@@ -1,58 +1,15 @@
-/**
- * Created by lixuesong on 11/11/2016.
- */
 'use strict';
+var { TurboModuleRegistry } = require('react-native');
+var RCTModule = TurboModuleRegistry.get('PO3Module');
+// Pre-call addListener via TurboModule JSI to ensure _listenerCount > 0.
+// Without this, sendEventWithName: silently drops all events in New Architecture.
+if (RCTModule) { RCTModule.addListener('event_notify_po3'); }
 
-
-var {NativeModules} = require('react-native');
-
-var RCTModule = NativeModules.PO3Module
-
-/**
- * @module PO3Module
- */
 module.exports = {
-
-  Event_Notify: RCTModule.Event_Notify,
-
-  /**
-   * Get the PO3 battery status.
-   * @param {string} mac Device's mac address
-   */
-  getBattery: function (mac) {
-      RCTModule.getBattery(mac)
-  },
-
-  /**
-   * Start real-time measurement.
-   * @param {string} mac Device's mac address
-   */
-  startMeasure: function (mac) {
-      RCTModule.startMeasure(mac)
-  },
-
-  /**
-   * Get the value of historical data in the PO3.
-   * @param {string} mac Device's mac address
-   */
-  getHistoryData: function (mac) {
-      RCTModule.getHistoryData(mac)
-  },
-
-  /**
-   * Disconnect the PO3
-   * @param mac The mac address
-   */
-  disconnect: function (mac) {
-      RCTModule.disconnect(mac)
-  },
-
-  /**
-   * Get all connected PO3 device
-   *
-   * e.g. {"devices":["A4D5783FB00C","A4D5783FFE58"]}
-   */
-  getAllConnectedDevices: function () {
-      RCTModule.getAllConnectedDevices()
-  }
-}
+  Event_Notify: 'event_notify_po3',
+  getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
+  getBattery: (mac) => { RCTModule?.getBattery(mac); },
+  startMeasure: (mac) => { RCTModule?.startMeasure(mac); },
+  getHistoryData: (mac) => { RCTModule?.getHistoryData(mac); },
+  disconnect: (mac) => { RCTModule?.disconnect(mac); },
+};

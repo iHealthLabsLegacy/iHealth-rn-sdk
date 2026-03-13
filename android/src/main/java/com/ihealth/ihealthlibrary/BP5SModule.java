@@ -20,8 +20,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@ReactModule(name = "BP5SModule")
+@ReactModule(name = BP5SModule.MODULE_NAME)
 public class BP5SModule extends iHealthBaseModule {
+    public static final String MODULE_NAME = "BP5SModule";
+
 
     private static final String moduleName = "BP5SModule";
     private static final String TAG = "BP5SModule";
@@ -33,7 +35,7 @@ public class BP5SModule extends iHealthBaseModule {
 
     @Override
     public String getName() {
-        return moduleName;
+        return MODULE_NAME;
     }
 
     @Override
@@ -175,4 +177,10 @@ public class BP5SModule extends iHealthBaseModule {
                 e.printStackTrace();
             }
     }
+
+    @ReactMethod
+    public void addListener(String eventName) {}
+
+    @ReactMethod
+    public void removeListeners(double count) {}
 }

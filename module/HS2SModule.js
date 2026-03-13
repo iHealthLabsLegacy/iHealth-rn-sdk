@@ -1,112 +1,34 @@
 'use strict';
+var { TurboModuleRegistry } = require('react-native');
+var RCTModule = TurboModuleRegistry.get('HS2SModule');
+// Pre-call addListener via TurboModule JSI to ensure _listenerCount > 0.
+// Without this, sendEventWithName: silently drops all events in New Architecture.
+if (RCTModule) { RCTModule.addListener('HS2S.MODULE.NOTIFY'); }
 
-
-var {NativeModules} = require('react-native');
-
-var RCTModule = NativeModules.HS2SModule
-
-/**
- * @module hs2sModule
- */
 module.exports = {
-  /**
-   * Notify event type for hs2s
-   */
-  Event_Notify: RCTModule.Event_Notify,
-
-
-  getDeviceInfo: function (mac) {
-    RCTModule.getDeviceInfo(mac)
+  Event_Notify: 'HS2S.MODULE.NOTIFY',
+  getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
+  getDeviceInfo: (mac) => { RCTModule?.getDeviceInfo(mac); },
+  getBattery: (mac) => { RCTModule?.getBattery(mac); },
+  setUnit: (mac, unit) => { RCTModule?.setUnit(mac, unit); },
+  getUserInfo: (mac) => { RCTModule?.getUserInfo(mac); },
+  updateUserInfo: (mac, userID, createTS, weight, age, height, sex, impedanceMark, fitnessMark) => {
+    RCTModule?.updateUserInfo(mac, userID, createTS, weight, age, height, sex, impedanceMark, fitnessMark);
   },
-  /**
-   * Get  hs2s device battary
-   *
-   */
-  getBattery: function (mac) {
-    RCTModule.getBattery(mac)
+  deleteUser: (mac, userID) => { RCTModule?.deleteUser(mac, userID); },
+  getMemoryDataCount: (mac, userID) => { RCTModule?.getMemoryDataCount(mac, userID); },
+  getMemoryData: (mac, userID) => { RCTModule?.getMemoryData(mac, userID); },
+  deleteMemoryData: (mac, userID) => { RCTModule?.deleteMemoryData(mac, userID); },
+  getAnonymousMemoryDataCount: (mac) => { RCTModule?.getAnonymousMemoryDataCount(mac); },
+  getAnonymousMemoryData: (mac) => { RCTModule?.getAnonymousMemoryData(mac); },
+  deleteAnonymousMemoryData: (mac) => { RCTModule?.deleteAnonymousMemoryData(mac); },
+  measure: (mac, userType, userID, createTS, weight, age, height, sex, impedanceMark, fitnessMark) => {
+    RCTModule?.measure(mac, userType, userID, createTS, weight, age, height, sex, impedanceMark, fitnessMark);
   },
-
-  setUnit: function (mac,unit) {
-    RCTModule.setUnit(mac,unit)
-  },
-
-  getUserInfo: function (mac) {
-    RCTModule.getUserInfo(mac)
-  },
-  
-  updateUserInfo: function (mac,userID,createTS,weight,age,height,sex,impedanceMark,fitnessMark) {
-    RCTModule.updateUserInfo(mac,userID,createTS,weight,age,height,sex,impedanceMark,fitnessMark);
-  },
-
-  deleteUser: function (mac,userID) {
-    RCTModule.deleteUser(mac,userID);
-  },
-
-  getMemoryDataCount: function (mac,userID) {
-    RCTModule.getMemoryDataCount(mac,userID);
-  },
-
-  getMemoryData: function (mac,userID) {
-    RCTModule.getMemoryData(mac,userID);
-  },
-
-  deleteMemoryData: function (mac,userID) {
-    RCTModule.deleteMemoryData(mac,userID);
-  },
-
-  getAnonymousMemoryDataCount: function (mac) {
-    RCTModule.getAnonymousMemoryDataCount(mac);
-  },
-
-  getAnonymousMemoryData: function (mac) {
-    RCTModule.getAnonymousMemoryData(mac);
-  },
-
-  deleteAnonymousMemoryData: function (mac) {
-    RCTModule.deleteAnonymousMemoryData(mac)
-  },
-
-  measure: function (mac,userType,userID,createTS,weight,age,height,sex,impedanceMark,fitnessMark) {
-    RCTModule.measure(mac,userType,userID,createTS,weight,age,height,sex,impedanceMark,fitnessMark)
-  },
-
-  resetDevice: function (mac) {
-    RCTModule.resetDevice(mac)
-  },
-
-  broadCastTypeDevice: function (mac) {
-    RCTModule.broadCastTypeDevice(mac)
-  },
-
-  setDeviceLightUp: function (mac) {
-    RCTModule.setDeviceLightUp(mac)
-  },
-
-  enterHS2SHeartRateMeasurementMode: function (mac) {
-    RCTModule.enterHS2SHeartRateMeasurementMode(mac)
-  },
-
-  exitHS2SHeartRateMeasurementMode: function (mac) {
-    RCTModule.exitHS2SHeartRateMeasurementMode(mac)
-  },
-
-
-  /**
-   * Disconnect the HS2S
-   * @param mac The mac address for blood pressure monitor
-   */
-  disconnect: function (mac) {
-    RCTModule.disconnect(mac)
-  },
-
-  /**
-   * Get all connected hs2s device
-   *
-   * e.g. {"devices":["A4D5783FB00C","A4D5783FFE58"]}
-   */
-  getAllConnectedDevices: function () {
-    RCTModule.getAllConnectedDevices()
-  }
-
-
-}
+  resetDevice: (mac) => { RCTModule?.resetDevice(mac); },
+  broadCastTypeDevice: (mac, type) => { RCTModule?.broadCastTypeDevice(mac, type); },
+  setDeviceLightUp: (mac) => { RCTModule?.setDeviceLightUp(mac); },
+  enterHS2SHeartRateMeasurementMode: (mac) => { RCTModule?.enterHS2SProHeartRateMeasurementMode(mac); },
+  exitHS2SHeartRateMeasurementMode: (mac) => { RCTModule?.exitHS2SProHeartRateMeasurementMode(mac); },
+  disconnect: (mac) => { RCTModule?.disconnect(mac); },
+};

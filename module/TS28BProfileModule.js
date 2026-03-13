@@ -2,7 +2,7 @@
 
 var { NativeModules } = require('react-native');
 
-var RCTModule = NativeModules.TS28BProfileModule
+var RCTModule = NativeModules.TS28BProfileModule || {}
 
 /**
  * @module TS28BProfileModule

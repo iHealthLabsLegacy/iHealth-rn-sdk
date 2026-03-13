@@ -1,155 +1,43 @@
 'use strict';
+var { TurboModuleRegistry } = require('react-native');
+var RCTModule = TurboModuleRegistry.get('AM6Module');
+// Pre-call addListener via TurboModule JSI to ensure _listenerCount > 0.
+// Without this, sendEventWithName: silently drops all events in New Architecture.
+if (RCTModule) { RCTModule.addListener('event_notify_am6'); }
 
-
-var {
-    NativeModules,
-    DeviceEventEmitter
-} = require('react-native');
-
-var AM6ProfileModule = require('./AM6ProfileModule.js');
-
-var RCTModule = NativeModules.AM6Module
-
-/**
- * @module AM6Module
- */
 module.exports = {
-
-    Event_Notify: RCTModule.Event_Notify,
-
-    getAllConnectedDevices: function () {
-        RCTModule.getAllConnectedDevices()
-    },
-    
-    disconnect: function (mac) {
-       RCTModule.disconnect(mac)
-    },
-
-    getDeviceInfoAndSyncTime: function (mac, is24Hour) {
-        RCTModule.getDeviceInfoAndSyncTime(mac, is24Hour)
-    },
-
-    setUserInfo: function (mac, userIds, gender, age, height, weight) {
-        RCTModule.setUserInfo(mac, userIds, gender, age, height, weight)
-    },
-
-    setPhonePlatform: function (mac) {
-        RCTModule.setPhonePlatform(mac)
-    },
-
-    notifyMessage: function (mac, date, status, type, title, content) {
-        RCTModule.notifyMessage(mac, date, status, type, title, content)
-    },
-    
-    findDevice: function (mac, start) {
-        RCTModule.findDevice(mac, start)
-    },
-
-    rebootDevice: function (mac) {
-        RCTModule.rebootDevice(mac)
-    },
-
-    getTime: function (mac) {
-        RCTModule.getTime(mac)
-    },
-
-    setTargetRemind: function (mac, isEnable, calorie, step) {
-        RCTModule.setTargetRemind(mac, isEnable, calorie, step)
-    },
-
-    getTargetRemind: function (mac) {
-        RCTModule.getTargetRemind(mac)
-    },
-
-    setSedentaryRemind: function (mac, enable, start, end) {
-        RCTModule.setSedentaryRemind(mac, enable, start, end)
-    },
-
-    getSedentaryRemind: function (mac) {
-        RCTModule.getSedentaryRemind(mac)
-    },
-
-    setRaiseToLightRemind: function (mac, enable, start, end) {
-        RCTModule.setRaiseToLightRemind(mac, enable, start, end)
-    },
-
-    getRaiseToLightRemind: function (mac) {
-        RCTModule.getRaiseToLightRemind(mac)
-    },
-
-    setDoNotDisturbMode: function (mac, enable, start, end) {
-        RCTModule.setDoNotDisturbMode(mac, enable, start, end)
-    },
-
-    getDoNotDisturbMode: function (mac) {
-        RCTModule.getDoNotDisturbMode(mac)
-    },
-
-    setWearHand: function (mac, type) {
-        RCTModule.setWearHand(mac, type)
-    },
-
-    getWearHand: function (mac) {
-        RCTModule.getWearHand(mac)
-    },
-    
-    setAlarmClockList: function (mac, clockList) {
-        RCTModule.setAlarmClockList(mac, clockList)
-    },
-
-    getAlarmClockList: function (mac) {
-        RCTModule.getAlarmClockList(mac)
-    },
-
-    startBind: function (mac) {
-        RCTModule.startBind(mac)
-    },
-
-    bindUserSuccess: function (mac, userIds) {
-        RCTModule.bindUserSuccess(mac, userIds)
-    },
-
-    bindUserFail: function (mac) {
-        RCTModule.bindUserFail(mac)
-    },
-
-    unBindUser: function (mac, userIds) {
-        RCTModule.unBindUser(mac, userIds)
-    },
-
-    readySyncData: function (mac) {
-        RCTModule.readySyncData(mac)
-    },
-
-    getDailyData: function (mac) {
-        RCTModule.getDailyData(mac)
-    },
-
-    getStepData: function (mac) {
-        RCTModule.getStepData(mac)
-    },
-    
-    getSleepData: function (mac) {
-        RCTModule.getSleepData(mac)
-    },
-
-    getStepData: function (mac) {
-        RCTModule.getStepData(mac)
-    },
-
-    getHeartRateData: function (mac) {
-        RCTModule.getHeartRateData(mac)
-    },
-
-    getBloodOxygenData: function (mac) {
-        RCTModule.getBloodOxygenData(mac)
-    },
-
-    getActivityData: function (mac) {
-        RCTModule.getActivityData(mac)
-    },
-
-    deleteData: function (mac, num) {
-        RCTModule.deleteData(mac, num)
-    },
-}
+  Event_Notify: 'event_notify_am6',
+  getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
+  getDeviceInfoAndSyncTime: (mac, flag) => { RCTModule?.getDeviceInfoAndSyncTime(mac, flag); },
+  setUserInfo: (mac, userID, gender, age, height, weight) => { RCTModule?.setUserInfo(mac, userID, gender, age, height, weight); },
+  setPhonePlatform: (mac) => { RCTModule?.setPhonePlatform(mac); },
+  notifyMessage: (mac, time, enable, flag, title, detail) => { RCTModule?.notifyMessage(mac, time, enable, flag, title, detail); },
+  findDevice: (mac, flag) => { RCTModule?.findDevice(mac, flag); },
+  rebootDevice: (mac) => { RCTModule?.rebootDevice(mac); },
+  getTime: (mac) => { RCTModule?.getTime(mac); },
+  setTargetRemind: (mac, enable, calorie, steps) => { RCTModule?.setTargetRemind(mac, enable, calorie, steps); },
+  getTargetRemind: (mac) => { RCTModule?.getTargetRemind(mac); },
+  setSedentaryRemind: (mac, enable, start, end) => { RCTModule?.setSedentaryRemind(mac, enable, start, end); },
+  getSedentaryRemind: (mac) => { RCTModule?.getSedentaryRemind(mac); },
+  setRaiseToLightRemind: (mac, enable, start, end) => { RCTModule?.setRaiseToLightRemind(mac, enable, start, end); },
+  getRaiseToLightRemind: (mac) => { RCTModule?.getRaiseToLightRemind(mac); },
+  setDoNotDisturbMode: (mac, enable, start, end) => { RCTModule?.setDoNotDisturbMode(mac, enable, start, end); },
+  getDoNotDisturbMode: (mac) => { RCTModule?.getDoNotDisturbMode(mac); },
+  setWearHand: (mac, hand) => { RCTModule?.setWearHand(mac, hand); },
+  getWearHand: (mac) => { RCTModule?.getWearHand(mac); },
+  setAlarmClockList: (mac, list) => { RCTModule?.setAlarmClockList(mac, list); },
+  getAlarmClockList: (mac) => { RCTModule?.getAlarmClockList(mac); },
+  startBind: (mac) => { RCTModule?.startBind(mac); },
+  bindUserSuccess: (mac, userID) => { RCTModule?.bindUserSuccess(mac, userID); },
+  bindUserFail: (mac) => { RCTModule?.bindUserFail(mac); },
+  unBindUser: (mac, userID) => { RCTModule?.unBindUser(mac, userID); },
+  readySyncData: (mac) => { RCTModule?.readySyncData(mac); },
+  getDailyData: (mac) => { RCTModule?.getDailyData(mac); },
+  getStepData: (mac) => { RCTModule?.getStepData(mac); },
+  getSleepData: (mac) => { RCTModule?.getSleepData(mac); },
+  getHeartRateData: (mac) => { RCTModule?.getHeartRateData(mac); },
+  getBloodOxygenData: (mac) => { RCTModule?.getBloodOxygenData(mac); },
+  getActivityData: (mac) => { RCTModule?.getActivityData(mac); },
+  deleteData: (mac, type) => { RCTModule?.deleteData(mac, type); },
+  disconnect: (mac) => { RCTModule?.disconnect(mac); },
+};

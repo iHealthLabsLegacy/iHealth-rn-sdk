@@ -21,10 +21,11 @@
 
 #define EVENT_NOTIFY @"event_notify_po3"
 
-@synthesize bridge = _bridge;
-
 RCT_EXPORT_MODULE()
 
+- (NSArray<NSString *> *)supportedEvents {
+    return @[EVENT_NOTIFY];
+}
 
 #pragma mark
 #pragma mark - constantsToExport
@@ -42,7 +43,7 @@ RCT_EXPORT_MODULE()
 #pragma mark - Init
 -(id)init
 {
-    if (self=[super init])
+    if (self=[super initWithDisabledObservation])
     {
         
         
@@ -86,7 +87,7 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
     
     NSDictionary* deviceInfo = @{@"action":@"ACTION_GET_ALL_CONNECTED_DEVICES",@"devices":deviceMacArray};
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
     
     
 }
@@ -106,7 +107,7 @@ RCT_EXPORT_METHOD(getBattery:(nonnull NSString *)mac){
         [[self getPO3WithMac:mac] commandPO3GetDeviceBattery:^(NSNumber *battery) {
             
             NSDictionary* deviceInfo = @{POACTION:@"ACTION_BATTERY_PO",PO_BATTERY:battery};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withErrorBlock:^(PO3ErrorID errorID) {
             
@@ -114,7 +115,7 @@ RCT_EXPORT_METHOD(getBattery:(nonnull NSString *)mac){
     }else{
         
         NSDictionary* deviceInfo = @{POACTION:@"ACTION_ERROR_PO",@"error_po":@"disconnect"};
-        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+        [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         
     }
     
@@ -132,7 +133,7 @@ RCT_EXPORT_METHOD(startMeasure:(nonnull NSString *)mac){
         } withMeasureData:^(NSDictionary *measureDataDic) {
             
             NSDictionary* deviceInfo = @{@"action":@"ACTION_LIVEDA_PO",@"pulseWave":[measureDataDic valueForKey:@"wave"],@"dataID":[measureDataDic valueForKey:@"dataID"],@"pi":[measureDataDic valueForKey:@"PI"],@"pulsestrength":[measureDataDic valueForKey:@"height"],@"bloodoxygen":[measureDataDic valueForKey:@"spo2"],@"heartrate":[measureDataDic valueForKey:@"bpm"]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
             resultDic=[[NSMutableDictionary alloc] initWithDictionary:deviceInfo];
             
@@ -140,7 +141,7 @@ RCT_EXPORT_METHOD(startMeasure:(nonnull NSString *)mac){
             
             [resultDic setValue:@"ACTION_RESULTDATA_PO" forKey:POACTION];
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:resultDic];
+            [self sendEventWithName:EVENT_NOTIFY body:resultDic];
             
         } withErrorBlock:^(PO3ErrorID errorID) {
             
@@ -149,7 +150,7 @@ RCT_EXPORT_METHOD(startMeasure:(nonnull NSString *)mac){
     }else{
         
         NSDictionary* deviceInfo = @{@"action":@"ACTION_ERROR_PO",@"error_po":@"disconnect"};
-        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+        [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         
     }
     
@@ -174,7 +175,7 @@ RCT_EXPORT_METHOD(getHistoryData:(nonnull NSString *)mac){
             
             if(dataCount.intValue == 0){
                 NSDictionary *dic = @{POACTION:@"ACTION_NO_OFFLINEDATA_PO"};
-                [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:dic];
+                [self sendEventWithName:EVENT_NOTIFY body:dic];
             }
             
         } withOfflineData:^(NSDictionary *OfflineData) {
@@ -208,7 +209,7 @@ RCT_EXPORT_METHOD(getHistoryData:(nonnull NSString *)mac){
         } withFinishMeasure:^(BOOL resetSuc) {
             
                 NSDictionary *dic = [NSDictionary dictionaryWithObjectsAndKeys:resultArray,@"offLineData",@"ACTION_OFFLINEDATA_PO",POACTION, nil];
-                [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:dic];
+                [self sendEventWithName:EVENT_NOTIFY body:dic];
            
 
         } withErrorBlock:^(PO3ErrorID errorID) {
@@ -245,6 +246,7 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString *)mac){
     
     
 }
+
 
 
 

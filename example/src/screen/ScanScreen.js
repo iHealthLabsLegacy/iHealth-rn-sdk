@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, StyleSheet, DeviceEventEmitter } from 'react-native'
+import { View, StyleSheet } from 'react-native'
 import { Button, ListItem } from '@rneui/themed';
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import useScanAPI from '../api/useScanAPI';

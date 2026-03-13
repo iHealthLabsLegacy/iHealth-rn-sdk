@@ -1,75 +1,15 @@
-/**
- * Created by zhangxu on 16/11/14.
- */
 'use strict';
+var { TurboModuleRegistry } = require('react-native');
+var RCTModule = TurboModuleRegistry.get('BP3LModule');
+// Pre-call addListener via TurboModule JSI to ensure _listenerCount > 0.
+// Without this, sendEventWithName: silently drops all events in New Architecture.
+if (RCTModule) { RCTModule.addListener('BP3L.MODULE.NOTIFY'); }
 
-
-var {NativeModules} = require('react-native');
-
-var RCTModule = NativeModules.BP3LModule;
-
-/**
- * @module BP3LModule
- */
 module.exports = {
-
-  Event_Notify: RCTModule.Event_Notify,
-
-  /**
-   * Start measure blood pressure monitor
-   * @param {string} mac Device's mac address
-   */
-  startMeasure: function (mac) {
-    if (RCTModule != null) {
-      RCTModule.startMeasure(mac);
-    } else {
-      console.log('~~~~~ RCTModule is null')
-    }
-  },
-
-
-  /**
-   * Cancel the measuring process immediately if device is in measuring state.
-   * @param {string} mac Device's mac address
-   */
-  stopMeasure: function (mac) {
-    if (RCTModule != null) {
-      RCTModule.stopMeasure(mac);
-    } else {
-      console.log('~~~~~ RCTModule is null')
-    }
-  },
-
-  /**
-   * Get the BP3L device's battery.
-   * @param {string} mac Device's mac address
-   */
-  getBattery: function (mac) {
-    if (RCTModule != null) {
-      RCTModule.getBattery(mac);
-    } else {
-      console.log('~~~~~ RCTModule is null')
-    }
-  },
-
-  /**
-   * Disconnect the BP3L
-   * @param {string} mac Device's mac address
-   */
-  disconnect: function (mac) {
-    if (RCTModule != null) {
-      RCTModule.disconnect(mac);
-    } else {
-      console.log('~~~~~ RCTModule is null')
-    }
-  },
-
-  /**
-   * Get all connected AM3S device
-   *
-   * e.g. {"devices":["A4D5783FB00C","A4D5783FFE58"]}
-   */
-  getAllConnectedDevices: function () {
-    RCTModule.getAllConnectedDevices()
-  }
-}
+  Event_Notify: 'BP3L.MODULE.NOTIFY',
+  getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
+  startMeasure: (mac) => { RCTModule?.startMeasure(mac); },
+  stopMeasure: (mac) => { RCTModule?.stopMeasure(mac); },
+  getBattery: (mac) => { RCTModule?.getBattery(mac); },
+  disconnect: (mac) => { RCTModule?.disconnect(mac); },
+};

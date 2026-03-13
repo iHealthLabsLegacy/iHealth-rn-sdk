@@ -17,8 +17,11 @@
 #define DEVICE_TYPE   @"BG1A"
 
 @implementation BG1AModule
-@synthesize bridge = _bridge;
 RCT_EXPORT_MODULE()
+
+- (NSArray<NSString *> *)supportedEvents {
+    return @[BG1A_EVENT_NOTIFY];
+}
 
 - (NSDictionary *)constantsToExport
 {
@@ -37,7 +40,7 @@ RCT_EXPORT_MODULE()
 #pragma mark - Init
 -(id)init
 {
-    if (self=[super init])
+    if (self=[super initWithDisabledObservation])
     {
         
         
@@ -92,7 +95,7 @@ RCT_EXPORT_MODULE()
         
         if(stripType==nil){
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:BG1A_EVENT_NOTIFY body:@{
+            [self sendEventWithName:BG1A_EVENT_NOTIFY body:@{
                 BG1A_ACTION:ACTION_STRIP_INSERTION_STATUS,
                 BG1A_KEY_MAC:tempMac,
                 BG1A_TYPE:DEVICE_TYPE,
@@ -102,7 +105,7 @@ RCT_EXPORT_MODULE()
             
         }else{
            
-            [self.bridge.eventDispatcher sendDeviceEventWithName:BG1A_EVENT_NOTIFY body:@{
+            [self sendEventWithName:BG1A_EVENT_NOTIFY body:@{
                 BG1A_ACTION:ACTION_STRIP_INSERTION_STATUS,
                 BG1A_KEY_MAC:tempMac,
                 BG1A_TYPE:DEVICE_TYPE,
@@ -126,7 +129,7 @@ RCT_EXPORT_MODULE()
     NSDictionary*dic=noti.userInfo[@"detailData"];
     if(num!=nil && tempMac!=nil && dic!=nil){
         
-        [self.bridge.eventDispatcher sendDeviceEventWithName:BG1A_EVENT_NOTIFY body:@{
+        [self sendEventWithName:BG1A_EVENT_NOTIFY body:@{
             BG1A_ACTION:ACTION_MEASURE_RESULT,
             BG1A_KEY_MAC:tempMac,
             BG1A_TYPE:DEVICE_TYPE,
@@ -191,12 +194,12 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
     
     NSDictionary* deviceInfo = @{BG1A_ACTION:kACTION_GET_ALL_CONNECTED_DEVICES,BG1A_DEVICE:deviceMacArray};
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:BG1A_EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:BG1A_EVENT_NOTIFY body:deviceInfo];
 }
 
 RCT_EXPORT_METHOD(getDeviceInfo:(nonnull NSString *)mac){
  
-    __weak typeof(self) weakSelf = self;
+    __weak __typeof__(self) weakSelf = self;
     
     if ([self getDeviceWithMac:mac] != nil) {
         
@@ -207,7 +210,7 @@ RCT_EXPORT_METHOD(getDeviceInfo:(nonnull NSString *)mac){
             mydateFormatter.timeZone = [NSTimeZone timeZoneWithName:@"UTC"];
             NSString *dateStr = [mydateFormatter stringFromDate:[weakSelf getDeviceWithMac:mac].deviceTS];
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:BG1A_EVENT_NOTIFY body:@{
+            [self sendEventWithName:BG1A_EVENT_NOTIFY body:@{
                                            BG1A_ACTION:ACTION_INFO_DEVICE,
                                            BG1A_KEY_MAC:mac,
                                            BG1A_TYPE:DEVICE_TYPE,
@@ -251,14 +254,14 @@ RCT_EXPORT_METHOD(setMeasureMode:(nonnull NSString *)mac measureMode:(nonnull NS
         }else{
             
             NSDictionary *deviceInfo = @{BG1A_KEY_MAC:mac,BG1A_TYPE:DEVICE_TYPE,BG1A_ACTION:ACTION_ERROR_BG1A,ERROR_NUM_BG1A:@400,ERROR_DESCRIPTION_BG1A:@"Input parameter error"};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:BG1A_EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:BG1A_EVENT_NOTIFY body:deviceInfo];
             
             return;
         }
         
         [[self getDeviceWithMac:mac] commandSetMeasureType:tempMode success:^{
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:BG1A_EVENT_NOTIFY body:@{
+            [self sendEventWithName:BG1A_EVENT_NOTIFY body:@{
                 BG1A_ACTION:ACTION_SET_MEASURE_MODE,
                 BG1A_KEY_MAC:mac,
                 BG1A_TYPE:DEVICE_TYPE,
@@ -282,7 +285,7 @@ RCT_EXPORT_METHOD(setDeviceTime:(nonnull NSString *)mac){
         
         [[self getDeviceWithMac:mac] commandSyncTime:^{
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:BG1A_EVENT_NOTIFY body:@{
+            [self sendEventWithName:BG1A_EVENT_NOTIFY body:@{
                                            BG1A_ACTION:ACTION_SET_DEVICE_TIME,
                                            BG1A_KEY_MAC:mac,
                                            BG1A_TYPE:DEVICE_TYPE,
@@ -381,7 +384,7 @@ RCT_EXPORT_METHOD(getHistoryData:(nonnull NSString *)mac){
             }
             
             if (tempArr.count > 0) {
-                [self.bridge.eventDispatcher sendDeviceEventWithName:BG1A_EVENT_NOTIFY body:@{
+                [self sendEventWithName:BG1A_EVENT_NOTIFY body:@{
                                                BG1A_ACTION:ACTION_GET_HISTORY,
                                                BG1A_KEY_MAC:mac,
                                                BG1A_TYPE:DEVICE_TYPE,
@@ -389,7 +392,7 @@ RCT_EXPORT_METHOD(getHistoryData:(nonnull NSString *)mac){
                                            }];
             }else{
                 
-                [self.bridge.eventDispatcher sendDeviceEventWithName:BG1A_EVENT_NOTIFY body:@{
+                [self sendEventWithName:BG1A_EVENT_NOTIFY body:@{
                                                BG1A_ACTION:ACTION_GET_HISTORY,
                                                BG1A_KEY_MAC:mac,
                                                BG1A_TYPE:DEVICE_TYPE,
@@ -421,7 +424,7 @@ RCT_EXPORT_METHOD(deleteHistoryData:(nonnull NSString *)mac){
         
         [[self getDeviceWithMac:mac] commandDeleteHistory:^{
            
-            [self.bridge.eventDispatcher sendDeviceEventWithName:BG1A_EVENT_NOTIFY body:@{
+            [self sendEventWithName:BG1A_EVENT_NOTIFY body:@{
                                            BG1A_ACTION:ACTION_DELETE_HISTORY,
                                            BG1A_KEY_MAC:mac,
                                            BG1A_TYPE:DEVICE_TYPE,
@@ -526,9 +529,10 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString *)mac){
                 }
     
                 NSDictionary *deviceInfo = @{BG1A_KEY_MAC:mac,BG1A_TYPE:DEVICE_TYPE,BG1A_ACTION:ACTION_ERROR_BG1A,ERROR_NUM_BG1A:[NSNumber numberWithInt:errorID],ERROR_DESCRIPTION_BG1A:errorMassage};
-                [self.bridge.eventDispatcher sendDeviceEventWithName:BG1A_EVENT_NOTIFY body:deviceInfo];
+                [self sendEventWithName:BG1A_EVENT_NOTIFY body:deviceInfo];
     
     
 }
+
 
 @end

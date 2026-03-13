@@ -3,7 +3,7 @@
 
 var {NativeModules} = require('react-native');
 
-var RCTModule = NativeModules.AM6ProfileModule
+var RCTModule = NativeModules.AM6ProfileModule || {}
 
 /**
  * @module AM6ProfileModule

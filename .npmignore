@@ -1,4 +1,35 @@
-# android
-android/build
-android/.gradle
-example
+# 开发示例项目
+example/
+
+# Android 构建产物
+android/build/
+android/.gradle/
+
+# node_modules
+node_modules/
+
+# 开发脚本（不需要随包发布）
+*.sh
+clean.sh
+batch_update_ios_modules.sh
+test_upgrade.sh
+verify_code.sh
+
+# 内部文档（仅保留 README 和 MIGRATION_GUIDE）
+RN_0.81_SUPPORT.md
+RUN_GUIDE.md
+TESTING_GUIDE.md
+TEST_RESULTS.md
+UPGRADE_GUIDE.md
+UPGRADE_SUMMARY.md
+CHANGELOG.md
+
+# lock 文件
+package-lock.json
+yarn.lock
+
+# 编辑器 / OS 临时文件
+.DS_Store
+.vscode/
+.idea/
+*.log

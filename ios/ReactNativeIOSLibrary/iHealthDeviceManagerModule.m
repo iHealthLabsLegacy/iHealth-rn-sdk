@@ -100,9 +100,20 @@
 
 @implementation iHealthDeviceManagerModule
 
-@synthesize bridge = _bridge;
-
 RCT_EXPORT_MODULE()
+
+- (NSArray<NSString *> *)supportedEvents {
+    return @[
+        kEvent_Scan_Device,
+        kEvent_Scan_Finish,
+        kEvent_Device_Connected,
+        kEvent_Device_Connect_Failed,
+        kEvent_Device_Disconnect,
+        kEvent_Authenticate_Result,
+        @"event_notify_ts28b",
+        @"event_notify_bg1"
+    ];
+}
 
 #pragma mark - constantsToExport
 
@@ -153,7 +164,7 @@ RCT_EXPORT_MODULE()
 #pragma mark
 #pragma mark - Init
 -(id)init{
-    if (self = [super init]){
+    if (self = [super initWithDisabledObservation]){
         
         [ScanDeviceController commandGetInstance];
         // AM3S
@@ -367,7 +378,7 @@ RCT_EXPORT_MODULE()
     
       NSDictionary* deviceInfo = @{@"event_notify_ts28b":@"ACTION_GET_ALL_CONNECTED_DEVICES",@"devices":self.ts28b.serialNumber};
        
-       [self.bridge.eventDispatcher sendDeviceEventWithName:@"event_notify_ts28b" body:deviceInfo];
+       [self sendEventWithName:@"event_notify_ts28b" body:deviceInfo];
 }
 
 - (NSString*)serialNumebr:(NSDictionary*)userInfo{
@@ -391,7 +402,7 @@ RCT_EXPORT_MODULE()
     
     
     //    NSDictionary* deviceInfo = @{@"mac":@"",@"type":@"BG1"};
-    //    [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Scan_Device body:deviceInfo];
+    //    [self sendEventWithName:kEvent_Scan_Device body:deviceInfo];
     
 }
 
@@ -399,11 +410,11 @@ RCT_EXPORT_MODULE()
     
     [[MPMusicPlayerController applicationMusicPlayer] setVolume:1.0f];
     NSDictionary* deviceInfo = @{@"mac":@"",@"type":@"BG1"};
-    [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Scan_Device body:deviceInfo];
+    [self sendEventWithName:kEvent_Scan_Device body:deviceInfo];
     
     
     //    NSDictionary* deviceInfo = @{@"mac":@"",@"type":@"BG1"};
-    //    [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Device_Connected body:deviceInfo];
+    //    [self sendEventWithName:kEvent_Device_Connected body:deviceInfo];
     
     BG1*myBG1=[[BG1Controller shareBG1Controller] getCurrentBG1Instance];
     
@@ -420,12 +431,12 @@ RCT_EXPORT_MODULE()
             bg1Mac = bg1IdpsDic[@"SerialNumber"];
         }
         NSDictionary* deviceInfo = @{@"mac":bg1Mac,@"type":@"BG1"};
-        [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Device_Connected body:deviceInfo];
+        [self sendEventWithName:kEvent_Device_Connected body:deviceInfo];
         
     } withErrorBlock:^(BG1Error errorID) {
         
         NSDictionary* deviceInfo = @{@"mac":@"",@"action":@"action_measure_error_for_bg1",@"action_measure_error_for_bg1":[NSNumber numberWithInt:errorID]};
-        [self.bridge.eventDispatcher sendDeviceEventWithName:@"event_notify_bg1" body:deviceInfo];
+        [self sendEventWithName:@"event_notify_bg1" body:deviceInfo];
         
     }];
     
@@ -434,7 +445,7 @@ RCT_EXPORT_MODULE()
 -(void)deviceBG1Disconnect:(NSNotification*)info {
     
     NSDictionary* deviceInfo = @{@"mac":@"",@"type":kType_BG1};
-    [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Device_Disconnect body:deviceInfo];
+    [self sendEventWithName:kEvent_Device_Disconnect body:deviceInfo];
 }
 
 #pragma mark - 发现BLE设备
@@ -478,18 +489,18 @@ RCT_EXPORT_MODULE()
         
         if([deviceName isEqualToString:kType_BG1A]){
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Scan_Device body:@{@"mac":sn,@"type":deviceNameForType[deviceName],@"rssi":userInfo[@"RSSI"]}];
+            [self sendEventWithName:kEvent_Scan_Device body:@{@"mac":sn,@"type":deviceNameForType[deviceName],@"rssi":userInfo[@"RSSI"]}];
             
         }else{
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Scan_Device body:@{@"mac":sn,@"type":deviceNameForType[deviceName]}];
+            [self sendEventWithName:kEvent_Scan_Device body:@{@"mac":sn,@"type":deviceNameForType[deviceName]}];
         }
         
         
     }else if([deviceName containsString:kType_AM6]&& [self serialNumebr:userInfo]){
         
         
-        [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Scan_Device body:@{@"mac":[self serialNumebr:userInfo],@"type":kType_AM6,@"rssi":userInfo[@"RSSI"]}];
+        [self sendEventWithName:kEvent_Scan_Device body:@{@"mac":[self serialNumebr:userInfo],@"type":kType_AM6,@"rssi":userInfo[@"RSSI"]}];
         
     }
         
@@ -551,9 +562,9 @@ RCT_EXPORT_MODULE()
     if (deviceNameForType[deviceName] && [self serialNumebr:userInfo]){
         NSString *sn = [self serialNumebr:userInfo];
         if ([self isIAPDevice:deviceName]){
-            [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Scan_Device body:@{@"mac":sn,@"type":deviceNameForType[deviceName]}];
+            [self sendEventWithName:kEvent_Scan_Device body:@{@"mac":sn,@"type":deviceNameForType[deviceName]}];
         }
-        [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Device_Connected body:@{@"mac":sn,@"type":deviceNameForType[deviceName]}];
+        [self sendEventWithName:kEvent_Device_Connected body:@{@"mac":sn,@"type":deviceNameForType[deviceName]}];
     }
 }
 #pragma mark 连接断开 BT\BLE都用这个通知
@@ -605,7 +616,7 @@ RCT_EXPORT_MODULE()
     
     if (deviceNameForType[deviceName] && [self serialNumebr:userInfo]){
         NSString *sn = [self serialNumebr:userInfo];
-        [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Device_Disconnect body:@{@"mac":sn,@"type":deviceNameForType[deviceName]}];
+        [self sendEventWithName:kEvent_Device_Disconnect body:@{@"mac":sn,@"type":deviceNameForType[deviceName]}];
     }
 }
 #pragma mark - 连接失败，BLE设备
@@ -649,7 +660,7 @@ RCT_EXPORT_MODULE()
     
     if (deviceNameForType[deviceName] && [self serialNumebr:userInfo]){
         NSString *sn = [self serialNumebr:userInfo];
-        [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Device_Connect_Failed body:@{@"mac":sn,@"type":deviceNameForType[deviceName]}];
+        [self sendEventWithName:kEvent_Device_Connect_Failed body:@{@"mac":sn,@"type":deviceNameForType[deviceName]}];
     }
 }
 
@@ -680,16 +691,16 @@ RCT_EXPORT_METHOD(sdkAuthWithLicense:(nonnull NSString *)license){
         } UserValidationSuccess:^(UserAuthenResult result) {
             
             if (result==UserAuthen_LoginSuccess || result==UserAuthen_RegisterSuccess|| result==UserAuthen_TrySuccess ) {
-                 [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Authenticate_Result body:@{@"access":@1}];
+                 [self sendEventWithName:kEvent_Authenticate_Result body:@{@"access":@1}];
             }else{
                 
-                 [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Authenticate_Result body:@{@"access":@0}];
+                 [self sendEventWithName:kEvent_Authenticate_Result body:@{@"access":@0}];
                 
             }
             
         } DisposeErrorBlock:^(UserAuthenResult errorID) {
             
-             [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Authenticate_Result body:@{@"access":@0}];
+             [self sendEventWithName:kEvent_Authenticate_Result body:@{@"access":@0}];
             
            
             
@@ -700,7 +711,7 @@ RCT_EXPORT_METHOD(sdkAuthWithLicense:(nonnull NSString *)license){
     }else{
         
         
-        [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Authenticate_Result body:@{@"access":@0}];
+        [self sendEventWithName:kEvent_Authenticate_Result body:@{@"access":@0}];
         
     }
     
@@ -718,7 +729,7 @@ RCT_EXPORT_METHOD(startDiscovery:(nonnull NSString *)deviceType){
                 BP5*mybp5=[bp5array objectAtIndex:i];
                 NSDictionary* deviceInfo = [[NSDictionary alloc]init];
                 deviceInfo = @{@"mac":mybp5.serialNumber,@"type":kType_BP5};
-                [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Scan_Device body:deviceInfo];
+                [self sendEventWithName:kEvent_Scan_Device body:deviceInfo];
             }
         }
     }else if ([deviceType isEqualToString:kType_BP7]){
@@ -729,7 +740,7 @@ RCT_EXPORT_METHOD(startDiscovery:(nonnull NSString *)deviceType){
                 BP7*mybp7=[bp7array objectAtIndex:i];
                 NSDictionary* deviceInfo = [[NSDictionary alloc]init];
                 deviceInfo = @{@"mac":mybp7.serialNumber,@"type":kType_BP7};
-                [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Scan_Device body:deviceInfo];
+                [self sendEventWithName:kEvent_Scan_Device body:deviceInfo];
             }
         }
     } else if ([deviceType isEqualToString:kType_BG1]){
@@ -743,7 +754,7 @@ RCT_EXPORT_METHOD(startDiscovery:(nonnull NSString *)deviceType){
                 BG5*mybg5=[bg5array objectAtIndex:i];
                 NSDictionary* deviceInfo = [[NSDictionary alloc]init];
                 deviceInfo = @{@"mac":mybg5.serialNumber,@"type":kType_BG5};
-                [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Scan_Device body:deviceInfo];
+                [self sendEventWithName:kEvent_Scan_Device body:deviceInfo];
             }
         }
     } else if ([deviceType isEqualToString:kType_ECG3USB]){
@@ -752,7 +763,7 @@ RCT_EXPORT_METHOD(startDiscovery:(nonnull NSString *)deviceType){
         if (myecg3!=nil) {
             NSDictionary* deviceInfo = [[NSDictionary alloc]init];
             deviceInfo = @{@"mac":myecg3.serialNumber,@"type":kType_ECG3USB};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Scan_Device body:deviceInfo];
+            [self sendEventWithName:kEvent_Scan_Device body:deviceInfo];
         }
     } else if ([deviceType isEqualToString:kType_AM3S]){
         
@@ -844,7 +855,7 @@ RCT_EXPORT_METHOD(startDiscovery:(nonnull NSString *)deviceType){
             
             for (int i=0; i<array.count; i++)  {
                 
-                [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Scan_Device body:@{@"mac":[array objectAtIndex:i],@"type":kType_AM6}];
+                [self sendEventWithName:kEvent_Scan_Device body:@{@"mac":[array objectAtIndex:i],@"type":kType_AM6}];
             }
             
            
@@ -865,7 +876,7 @@ RCT_EXPORT_METHOD(startDiscovery:(nonnull NSString *)deviceType){
     
    [self.ts28bController connectDevice:device];
     
-   [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Scan_Device body:@{@"mac":@"",@"type":@"TS28B"}];
+   [self sendEventWithName:kEvent_Scan_Device body:@{@"mac":@"",@"type":@"TS28B"}];
     
     
     
@@ -877,19 +888,19 @@ RCT_EXPORT_METHOD(startDiscovery:(nonnull NSString *)deviceType){
     
     self.ts28b=device;
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Device_Connected body:@{@"mac":device.serialNumber,@"type":@"TS28B"}];
+    [self sendEventWithName:kEvent_Device_Connected body:@{@"mac":device.serialNumber,@"type":@"TS28B"}];
 }
 - (void)controller:(TS28BController *)controller didConnectFailDevice:(TS28B *)device{
 //    NSLog(@"连接失败的代理");
 //    self.recordTextView.text = @"连接失败";
-     [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Device_Connect_Failed body:@{@"mac":device.peripheral.identifier,@"type":@"TS28B"}];
+     [self sendEventWithName:kEvent_Device_Connect_Failed body:@{@"mac":device.peripheral.identifier,@"type":@"TS28B"}];
 }
 - (void)controller:(TS28BController *)controller didDisconnectDevice:(TS28B *)device{
 //    NSLog(@"断开连接的代理");
 //    self.recordTextView.text = @"连接断开";
     
     
-     [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Device_Disconnect body:@{@"mac":device.serialNumber,@"type":@"TS28B"}];
+     [self sendEventWithName:kEvent_Device_Disconnect body:@{@"mac":device.serialNumber,@"type":@"TS28B"}];
 }
 - (void)controller:(TS28BController *)controller device:(TS28B *)device didUpdateTemperature:(float)value temperatureUnit:(TemperatureUnit)unit measureDate:(NSDate *)date measureLocation:(TemperatureType)type{
     
@@ -943,7 +954,7 @@ RCT_EXPORT_METHOD(stopDiscovery){
     
     [[ScanDeviceController commandGetInstance] commandStopScanDeviceType:HealthDeviceType_HS2SPro];
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Scan_Finish body:nil];
+    [self sendEventWithName:kEvent_Scan_Finish body:nil];
 }
 
 RCT_EXPORT_METHOD(connectDevice:(nonnull NSString *)mac type:(nonnull NSString *)deviceType){
@@ -955,7 +966,7 @@ RCT_EXPORT_METHOD(connectDevice:(nonnull NSString *)mac type:(nonnull NSString *
             for (int i=0; i<bp5array.count; i++) {
                 BP5*mybp5=[bp5array objectAtIndex:i];
                 NSDictionary* deviceInfo = @{@"mac":mybp5.serialNumber,@"type":kType_BP5};
-                [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Device_Connected body:deviceInfo];
+                [self sendEventWithName:kEvent_Device_Connected body:deviceInfo];
             }
         }
         
@@ -966,7 +977,7 @@ RCT_EXPORT_METHOD(connectDevice:(nonnull NSString *)mac type:(nonnull NSString *
             for (int i=0; i<bp7array.count; i++) {
                 BP7*mybp7=[bp7array objectAtIndex:i];
                 NSDictionary* deviceInfo = @{@"mac":mybp7.serialNumber,@"type":kType_BP7};
-                [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Device_Connected body:deviceInfo];
+                [self sendEventWithName:kEvent_Device_Connected body:deviceInfo];
             }
         }
         
@@ -987,7 +998,7 @@ RCT_EXPORT_METHOD(connectDevice:(nonnull NSString *)mac type:(nonnull NSString *
             }
             NSDictionary*idpsDics=[[NSDictionary alloc] initWithObjectsAndKeys:[bg1IdpsDic valueForKey:@"FW"],@"FirmWare",[bg1IdpsDic valueForKey:@"HD"],@"HardWare",[bg1IdpsDic valueForKey:@"SerialNumber"],@"DeviceId",nil];
             NSDictionary* deviceInfo = @{@"mac":bg1Mac,@"type":@"BG1",@"description":@"Success.",@"connect_result_for_bg1":@0,@"idps":idpsDics};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:@"action_connect_result_for_bg1" body:deviceInfo];
+            [self sendEventWithName:@"action_connect_result_for_bg1" body:deviceInfo];
             
         } withConnectBlock:^{
             
@@ -996,7 +1007,7 @@ RCT_EXPORT_METHOD(connectDevice:(nonnull NSString *)mac type:(nonnull NSString *
                 bg1Mac = bg1IdpsDic[@"SerialNumber"];
             }
             NSDictionary* deviceInfo = @{@"mac":bg1Mac,@"type":@"BG1"};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Device_Connected body:deviceInfo];
+            [self sendEventWithName:kEvent_Device_Connected body:deviceInfo];
             
         } withErrorBlock:^(BG1Error errorID) {
             
@@ -1047,7 +1058,7 @@ RCT_EXPORT_METHOD(connectDevice:(nonnull NSString *)mac type:(nonnull NSString *
             }
             
             NSDictionary* deviceInfo = @{@"mac":bg1Mac,@"action":@"action_measure_error_for_bg1",@"action_measure_error_for_bg1":[NSNumber numberWithInt:errorID],@"description":descriptionStr};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:@"event_notify_bg1" body:deviceInfo];
+            [self sendEventWithName:@"event_notify_bg1" body:deviceInfo];
             
         }];
         
@@ -1059,7 +1070,7 @@ RCT_EXPORT_METHOD(connectDevice:(nonnull NSString *)mac type:(nonnull NSString *
                 BG5*mybg5=[bg5array objectAtIndex:i];
                 NSDictionary* deviceInfo = [[NSDictionary alloc]init];
                 deviceInfo = @{@"mac":mybg5.serialNumber,@"type":kType_BG5};
-                [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Device_Connected body:deviceInfo];
+                [self sendEventWithName:kEvent_Device_Connected body:deviceInfo];
             }
             
             
@@ -1111,7 +1122,7 @@ RCT_EXPORT_METHOD(connectDevice:(nonnull NSString *)mac type:(nonnull NSString *
         if (myecg3!=nil) {
             
             NSDictionary* deviceInfo = @{@"mac":myecg3.serialNumber,@"type":kType_ECG3USB};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Device_Connected body:deviceInfo];
+            [self sendEventWithName:kEvent_Device_Connected body:deviceInfo];
         }
     }else if ([deviceType isEqualToString:kType_BG5S]){
         
@@ -1123,7 +1134,7 @@ RCT_EXPORT_METHOD(connectDevice:(nonnull NSString *)mac type:(nonnull NSString *
         
     }else if ([deviceType isEqualToString:kType_TS28B]){
         
-       [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Device_Connected body:@{@"mac":self.ts28b.serialNumber,@"type":@"TS28B"}];
+       [self sendEventWithName:kEvent_Device_Connected body:@{@"mac":self.ts28b.serialNumber,@"type":@"TS28B"}];
         
     }else if ([deviceType isEqualToString:kType_BG1S]){
         
@@ -1277,7 +1288,7 @@ RCT_EXPORT_METHOD(authenConfigureInfo:(NSString *)userID clientID:(NSString *)cl
     }else{
         [[NSUserDefaults standardUserDefaults] removeObjectForKey:FetchUserInfo];
     }
-    [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Authenticate_Result body:@{@"authen":@(result)}];
+    [self sendEventWithName:kEvent_Authenticate_Result body:@{@"authen":@(result)}];
 }
 
 RCT_EXPORT_METHOD(authenAppSecret:(NSString *)appSecret){
@@ -1285,7 +1296,7 @@ RCT_EXPORT_METHOD(authenAppSecret:(NSString *)appSecret){
     
     [[IHSDKCloudUser commandGetSDKUserInstance] commandSDKUserValidationWithAppSecret:appSecret UserValidationSuccess:^(UserAuthenResult result) {
         
-        [self.bridge.eventDispatcher sendDeviceEventWithName:kEvent_Authenticate_Result body:@{@"authen":@(result)}];
+        [self sendEventWithName:kEvent_Authenticate_Result body:@{@"authen":@(result)}];
         
     } DisposeErrorBlock:^(UserAuthenResult errorID) {
         
@@ -1321,5 +1332,6 @@ RCT_EXPORT_METHOD(disconnectDevice:(NSString*)mac type:(NSString*)type){
 - (void)iHealthSDKLogUpdate:(NSString *)log{
     NSLog(@"%@",log);
 }
+
 
 @end

@@ -19,9 +19,20 @@
 
 @implementation HS4SModule
 
-@synthesize bridge = _bridge;
+
+- (instancetype)init
+{
+  // initWithDisabledObservation sets _observationDisabled = YES so that
+  // sendEventWithName:body: always dispatches regardless of _listenerCount.
+  // This is required for React Native New Architecture (TurboModule) compatibility.
+  return [super initWithDisabledObservation];
+}
 
 RCT_EXPORT_MODULE()
+
+- (NSArray<NSString *> *)supportedEvents {
+    return @[EVENT_NOTIFY];
+}
 
 #pragma mark-init
 
@@ -78,7 +89,7 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
     }
     
     NSDictionary* deviceInfo = @{@"action":@"action_get_all_connected_devices",@"devices":deviceMacArray};
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
     
     
 }
@@ -119,7 +130,7 @@ RCT_EXPORT_METHOD(getOfflineData:(nonnull NSString*)mac){
                     
                      NSDictionary *deviceInfo = @{@"mac":mac,@"action":ACTION_HISTORICAL_DATA_HS,HISTORDATA_HS:dataArray};
                     
-                    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+                    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
                     NSLog(@"historyDataArray:%@",historyDataArray);
  
                 }
@@ -128,7 +139,7 @@ RCT_EXPORT_METHOD(getOfflineData:(nonnull NSString*)mac){
         } FinishTransmission:^{
             NSDictionary *deviceInfo = @{@"mac":mac,@"action":ACTION_HISTORICAL_DATA_COMPLETE_HS};
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         } DisposeErrorBlock:^(HS4DeviceError errorID) {
             NSString *errorMassage = [NSString string];
             NSLog(@"errorID:%d",errorID);
@@ -163,12 +174,12 @@ RCT_EXPORT_METHOD(getOfflineData:(nonnull NSString*)mac){
             if(errorID == 9){
             NSDictionary *deviceInfo = @{@"mac":mac,@"action":ACTION_NO_HISTORICALDATA,ERROR_DESCRIPTION_HS:@"No History Data."};
                 
-                [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+                [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             }
             else if(errorID != 11){
                 NSDictionary *deviceInfo = @{@"mac":mac,@"action":ACTION_ERROR_HS,ERROR_NUM_HS:errorMassage};
         
-                [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];}
+                [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];}
         }];
     }
 }
@@ -179,12 +190,12 @@ RCT_EXPORT_METHOD(measureOnline:(nonnull NSString*)mac :(nonnull NSNumber*)unit 
        
         [[self getHS4WithMac:mac]commandMeasureWithUint:unit.intValue  Weight:^(NSNumber *unStableWeight) {
             NSDictionary *deviceInfo = @{@"mac":mac,@"action":ACTION_LIVEDATA_HS,LIVEDATA_HS:unStableWeight};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } StableWeight:^(NSDictionary *StableWeightDic) {
             NSDictionary *deviceInfo =@{@"mac":mac,@"action":ACTION_ONLINE_RESULT_HS,DATAID:[StableWeightDic valueForKey:@"dataID"],WEIGHT_HS:[StableWeightDic valueForKey:@"Weight"] };
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         } DisposeErrorBlock:^(HS4DeviceError errorID) {
            NSString *errorMassage = [NSString string];
             switch (errorID) {
@@ -223,7 +234,7 @@ RCT_EXPORT_METHOD(measureOnline:(nonnull NSString*)mac :(nonnull NSNumber*)unit 
             }
 
             NSDictionary *deviceInfo = @{@"mac":mac,@"action":ACTION_ERROR_HS,ERROR_NUM_HS:errorMassage};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }
 
@@ -244,7 +255,8 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString*)mac){
 }
 
 - (void)sendEventWithAction:(NSString*)actionName keyString:(NSString*)key valueString:(id)value{
-    [self.bridge.eventDispatcher sendDeviceEventWithName:@"HS4.MODULE.NOTIFY"  body:@{@"action":actionName,key:value}];
+    [self sendEventWithName:@"HS4.MODULE.NOTIFY" body:@{@"action":actionName,key:value}];
 }
+
 
 @end

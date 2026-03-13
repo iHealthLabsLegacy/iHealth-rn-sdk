@@ -23,11 +23,11 @@
 
 @implementation AM6Module
 
-@synthesize bridge = _bridge;
-
-
 RCT_EXPORT_MODULE()
 
+- (NSArray<NSString *> *)supportedEvents {
+    return @[AM6_EVENT_NOTIFY];
+}
 
 #pragma mark
 #pragma mark - constantsToExport
@@ -46,7 +46,7 @@ RCT_EXPORT_MODULE()
 #pragma mark - Init
 -(id)init
 {
-    if (self=[super init])
+    if (self=[super initWithDisabledObservation])
     {
         
         [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(am6StartFindPhoneNoti:) name:@"AM6StartFindPhoneNoti" object:nil];
@@ -94,7 +94,7 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
     
     NSDictionary* deviceInfo = @{AM6_ACTION:kACTION_GET_ALL_CONNECTED_DEVICES,AM6_DEVICE:deviceMacArray};
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:AM6_EVENT_NOTIFY body:deviceInfo];
     
     
 }
@@ -104,11 +104,11 @@ RCT_EXPORT_METHOD(getDeviceInfoAndSyncTime:(nonnull NSString *)mac :(int)flag){
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM6WithMac:mac] queryDeviceInfoAndSyncTimeWithSuccess:^{
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_GET_DEVICE_INFO,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
@@ -122,7 +122,7 @@ RCT_EXPORT_METHOD(getDeviceInfoAndSyncTime:(nonnull NSString *)mac :(int)flag){
             
         } fail:^(int error) {
             
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error mac:mac];
             
         }];
     }else{
@@ -139,11 +139,11 @@ RCT_EXPORT_METHOD(setUserInfo:(nonnull NSString *)mac :(nonnull NSString *)userI
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM6WithMac:mac] setUserInfoWithUserIdMD5:[AM6ProfileModule md5:userID] gender:gender age:age height:height weight:weight success:^{
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_SET_USER,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
@@ -154,7 +154,7 @@ RCT_EXPORT_METHOD(setUserInfo:(nonnull NSString *)mac :(nonnull NSString *)userI
             
             if(error==AM6DeviceError_WrongUserIDInput){
                 
-                [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+                [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                                AM6_ACTION:ACTION_SET_USER,
                                                AM6_KEY_MAC:mac,
                                                AM6_TYPE:DEVICE_TYPE,
@@ -163,7 +163,7 @@ RCT_EXPORT_METHOD(setUserInfo:(nonnull NSString *)mac :(nonnull NSString *)userI
                 
             }else{
               
-                [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+                [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
                 
             }
             
@@ -181,18 +181,18 @@ RCT_EXPORT_METHOD(setPhonePlatform:(nonnull NSString *)mac){
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM6WithMac:mac] setPlatformWithSuccess:^{
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_SET_PHONEPLATFORM,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
                                        }];
             
         } fail:^(int error) {
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
         }];
     }else{
         
@@ -205,11 +205,11 @@ RCT_EXPORT_METHOD(findDevice:(nonnull NSString *)mac :(int)flag){
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM6WithMac:mac] findDevice:flag success:^{
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_FIND_DEVICE,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
@@ -219,7 +219,7 @@ RCT_EXPORT_METHOD(findDevice:(nonnull NSString *)mac :(int)flag){
             
         } fail:^(int error) {
             
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
             
         }];
     }else{
@@ -232,7 +232,7 @@ RCT_EXPORT_METHOD(findDevice:(nonnull NSString *)mac :(int)flag){
 
 - (void)am6StartFindPhoneNoti:(NSNotification *)noti{
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+    [self sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                    AM6_ACTION:ACTION_FIND_PHONE,
                                    AM6_KEY_MAC:[[noti userInfo] valueForKey:AM6_KEY_MAC],
                                    AM6_TYPE:DEVICE_TYPE,
@@ -242,7 +242,7 @@ RCT_EXPORT_METHOD(findDevice:(nonnull NSString *)mac :(int)flag){
 
 - (void)am6StopFindPhoneNoti:(NSNotification *)noti{
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+    [self sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                    AM6_ACTION:ACTION_FIND_PHONE,
                                    AM6_KEY_MAC:[[noti userInfo] valueForKey:AM6_KEY_MAC],
                                    AM6_TYPE:DEVICE_TYPE,
@@ -253,7 +253,7 @@ RCT_EXPORT_METHOD(findDevice:(nonnull NSString *)mac :(int)flag){
 
 RCT_EXPORT_METHOD(notifyMessage:(nonnull NSString *)mac :(int)time :(int)enable :(int)flag :(nonnull NSString *)title :(nonnull NSString *)detail){
     
-    [AM6ProfileModule sendErrorToBridge:self.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:404 mac:mac];
+    [AM6ProfileModule sendErrorToEmitter:self eventNotify:AM6_EVENT_NOTIFY WithCode:404 mac:mac];
     
 }
 
@@ -262,13 +262,13 @@ RCT_EXPORT_METHOD(rebootDevice:(nonnull NSString *)mac){
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         NSString*deviceMAC=[[self getAM6WithMac:mac].serialNumber copy];
         
         [[self getAM6WithMac:mac] rebootDeviceWithSuccess:^{
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [self sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_REBOOT_DEVICE,
                                            AM6_KEY_MAC:deviceMAC,
                                            AM6_TYPE:DEVICE_TYPE,
@@ -276,7 +276,7 @@ RCT_EXPORT_METHOD(rebootDevice:(nonnull NSString *)mac){
             
         } fail:^(int error) {
             
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
             
         }];
     }else{
@@ -291,11 +291,11 @@ RCT_EXPORT_METHOD(getTime:(nonnull NSString *)mac){
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM6WithMac:mac] queryDeviceTimeWithSuccess:^{
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_GET_TIME,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
@@ -306,7 +306,7 @@ RCT_EXPORT_METHOD(getTime:(nonnull NSString *)mac){
             
         } fail:^(int error) {
             
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
         }];
     }else{
         
@@ -319,11 +319,11 @@ RCT_EXPORT_METHOD(setTargetRemind:(nonnull NSString *)mac :(BOOL)enable :(NSInte
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM6WithMac:mac] setGoalReminderEnable:enable calorie:calorie steps:steps success:^{
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_SET_REMINDER,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
@@ -332,7 +332,7 @@ RCT_EXPORT_METHOD(setTargetRemind:(nonnull NSString *)mac :(BOOL)enable :(NSInte
                                        }];
             
         } fail:^(int error) {
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
         }];
         
     }else{
@@ -346,11 +346,11 @@ RCT_EXPORT_METHOD(getTargetRemind:(nonnull NSString *)mac){
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM6WithMac:mac] queryGoalReminderWithSuccess:^{
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_GET_REMINDER,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
@@ -361,7 +361,7 @@ RCT_EXPORT_METHOD(getTargetRemind:(nonnull NSString *)mac){
                                        }];
             
         } fail:^(int error) {
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
         }];
     }else{
         
@@ -374,11 +374,11 @@ RCT_EXPORT_METHOD(setSedentaryRemind:(nonnull NSString *)mac :(BOOL)enable :(NSI
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM6WithMac:mac] setStretchReminderEnable:enable start:start end:end success:^{
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_SET_SENDENTARY,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
@@ -387,7 +387,7 @@ RCT_EXPORT_METHOD(setSedentaryRemind:(nonnull NSString *)mac :(BOOL)enable :(NSI
                                        }];
             
         } fail:^(int error) {
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
         }];
         
     }else{
@@ -401,10 +401,10 @@ RCT_EXPORT_METHOD(getSedentaryRemind:(nonnull NSString *)mac){
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM6WithMac:mac] queryStretchReminderWithSuccess:^{
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_GET_SENDENTARY,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
@@ -414,7 +414,7 @@ RCT_EXPORT_METHOD(getSedentaryRemind:(nonnull NSString *)mac){
                                            AM6_GET_SENDENTARY_ENABLE:@([weakSelf getAM6WithMac:mac].isStretchReminderOn),
                                        }];
         } fail:^(int error) {
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
         }];
     }else{
         
@@ -428,11 +428,11 @@ RCT_EXPORT_METHOD(setRaiseToLightRemind:(nonnull NSString *)mac :(BOOL)enable :(
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM6WithMac:mac] setRaiseWakeEnable:enable start:start end:end success:^{
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_SET_RAISE,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
@@ -441,7 +441,7 @@ RCT_EXPORT_METHOD(setRaiseToLightRemind:(nonnull NSString *)mac :(BOOL)enable :(
                                        }];
             
         } fail:^(int error) {
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
         }];
         
     }else{
@@ -455,10 +455,10 @@ RCT_EXPORT_METHOD(getRaiseToLightRemind:(nonnull NSString *)mac){
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM6WithMac:mac] queryRaiseWakeWithSuccess:^{
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_GET_RAISE,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
@@ -468,7 +468,7 @@ RCT_EXPORT_METHOD(getRaiseToLightRemind:(nonnull NSString *)mac){
                                            AM6_GET_RAISE_ENABLE:@([weakSelf getAM6WithMac:mac].isRaiseToWakeOn),
                                        }];
         } fail:^(int error) {
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
         }];
     }else{
         
@@ -481,11 +481,11 @@ RCT_EXPORT_METHOD(setDoNotDisturbMode:(nonnull NSString *)mac :(BOOL)enable :(NS
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM6WithMac:mac] setNotDisturbEnable:enable start:start end:end success:^{
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_SET_DONOTDISTURB,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
@@ -494,7 +494,7 @@ RCT_EXPORT_METHOD(setDoNotDisturbMode:(nonnull NSString *)mac :(BOOL)enable :(NS
                                        }];
             
         } fail:^(int error) {
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
         }];
         
     }else{
@@ -508,10 +508,10 @@ RCT_EXPORT_METHOD(getDoNotDisturbMode:(nonnull NSString *)mac){
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM6WithMac:mac] queryNotDisturbWithSuccess:^{
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_GET_DONOTDISTURB,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
@@ -521,7 +521,7 @@ RCT_EXPORT_METHOD(getDoNotDisturbMode:(nonnull NSString *)mac){
                                            AM6_GET_DONOTDISTURB_ENABLE:@([weakSelf getAM6WithMac:mac].isDoNotDisturbOn),
                                        }];
         } fail:^(int error) {
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
         }];
     }else{
         
@@ -534,11 +534,11 @@ RCT_EXPORT_METHOD(setWearHand:(nonnull NSString *)mac :(NSInteger)hand){
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM6WithMac:mac] setWearHand:hand success:^{
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_SET_WEARHAND,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
@@ -547,7 +547,7 @@ RCT_EXPORT_METHOD(setWearHand:(nonnull NSString *)mac :(NSInteger)hand){
                                        }];
             
         } fail:^(int error) {
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
         }];
         
     }else{
@@ -561,10 +561,10 @@ RCT_EXPORT_METHOD(getWearHand:(nonnull NSString *)mac){
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM6WithMac:mac] queryWearHandWithSuccess:^{
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_GET_WEARHAND,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
@@ -573,7 +573,7 @@ RCT_EXPORT_METHOD(getWearHand:(nonnull NSString *)mac){
                     
                                        }];
         } fail:^(int error) {
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
         }];
     }else{
         
@@ -588,14 +588,14 @@ RCT_EXPORT_METHOD(setAlarmClockList:(nonnull NSString *)mac :(nonnull NSString *
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         
         if(list.length==0){
             
             [[self getAM6WithMac:mac] setAlartList:[NSArray array] success:^{
                 
-                [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+                [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                                AM6_ACTION:ACTION_SET_ALARMLIST,
                                                AM6_KEY_MAC:mac,
                                                AM6_TYPE:DEVICE_TYPE,
@@ -605,7 +605,7 @@ RCT_EXPORT_METHOD(setAlarmClockList:(nonnull NSString *)mac :(nonnull NSString *
                 
                 
             } fail:^(int error) {
-                [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+                [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
             }];
             
             return;
@@ -618,7 +618,7 @@ RCT_EXPORT_METHOD(setAlarmClockList:(nonnull NSString *)mac :(nonnull NSString *
         
         if(array.count==0){
            
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:AM6DeviceError_InputParameterError mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:AM6DeviceError_InputParameterError mac:mac];
             
             return;
         }
@@ -631,7 +631,7 @@ RCT_EXPORT_METHOD(setAlarmClockList:(nonnull NSString *)mac :(nonnull NSString *
             
             if(tempArray.count!=3){
                 
-                [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:AM6DeviceError_InputParameterError mac:mac];
+                [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:AM6DeviceError_InputParameterError mac:mac];
                 
                 return;
                 
@@ -677,7 +677,7 @@ RCT_EXPORT_METHOD(setAlarmClockList:(nonnull NSString *)mac :(nonnull NSString *
         
         [[self getAM6WithMac:mac] setAlartList:mArr success:^{
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_SET_ALARMLIST,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
@@ -687,7 +687,7 @@ RCT_EXPORT_METHOD(setAlarmClockList:(nonnull NSString *)mac :(nonnull NSString *
             
             
         } fail:^(int error) {
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
         }];
         
     }else{
@@ -701,7 +701,7 @@ RCT_EXPORT_METHOD(getAlarmClockList:(nonnull NSString *)mac){
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM6WithMac:mac] queryAlarmListWithSuccess:^{
             
@@ -735,7 +735,7 @@ RCT_EXPORT_METHOD(getAlarmClockList:(nonnull NSString *)mac){
                 
             }
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_GET_ALARMLIST,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
@@ -743,7 +743,7 @@ RCT_EXPORT_METHOD(getAlarmClockList:(nonnull NSString *)mac){
                                            AM6_GET_ALARMLIST_STATUS:@1,
                                        }];
         } fail:^(int error) {
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
         }];
     }else{
         
@@ -757,19 +757,19 @@ RCT_EXPORT_METHOD(startBind:(nonnull NSString *)mac){
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
       
         
         [[self getAM6WithMac:mac] sendStartBindWithSuccess:^{
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_SET_STARTBIND,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
                     
                                        }];
         } fail:^(int error) {
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
         }];
         
     }else{
@@ -783,20 +783,20 @@ RCT_EXPORT_METHOD(bindUserSuccess:(nonnull NSString *)mac :(nonnull NSString *)u
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
       
         
         [[self getAM6WithMac:mac] sendSuccessBindWithUserId:[AM6ProfileModule md5:userID] success:^{
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_SET_BINDSUCCESS,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
                     
                                        }];
         } fail:^(int error) {
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
         }];
         
     }else{
@@ -810,18 +810,18 @@ RCT_EXPORT_METHOD(bindUserFail:(nonnull NSString *)mac){
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM6WithMac:mac] sendFailBindWithSuccess:^{
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_SET_BINDFAIL,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
                     
                                        }];
         } fail:^(int error) {
-            [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+            [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
         }];
         
     }else{
@@ -835,12 +835,12 @@ RCT_EXPORT_METHOD(unBindUser:(nonnull NSString *)mac :(nonnull NSString *)userID
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
       
         
         [[self getAM6WithMac:mac] sendUnbindWithUserId:[AM6ProfileModule md5:userID] success:^{
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                            AM6_ACTION:ACTION_SET_UNBIND,
                                            AM6_KEY_MAC:mac,
                                            AM6_TYPE:DEVICE_TYPE,
@@ -850,7 +850,7 @@ RCT_EXPORT_METHOD(unBindUser:(nonnull NSString *)mac :(nonnull NSString *)userID
             
             if(error == AM6DeviceError_ActionFail){
                 
-                [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+                [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                                                AM6_ACTION:ACTION_SET_UNBIND,
                                                AM6_KEY_MAC:mac,
                                                AM6_TYPE:DEVICE_TYPE,
@@ -859,7 +859,7 @@ RCT_EXPORT_METHOD(unBindUser:(nonnull NSString *)mac :(nonnull NSString *)userID
                 
             }else{
                 
-                [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+                [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
             }
             
            
@@ -878,11 +878,11 @@ RCT_EXPORT_METHOD(readySyncData:(nonnull NSString *)mac){
     
     if ([self getAM6WithMac:mac]!=nil) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM6WithMac:mac] prepareSyncWithSuccess:^{
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                 AM6_ACTION:ACTION_SYNC_READY,
                 AM6_KEY_MAC:mac,
                 AM6_TYPE:DEVICE_TYPE,
@@ -890,7 +890,7 @@ RCT_EXPORT_METHOD(readySyncData:(nonnull NSString *)mac){
             }];
                 
             } fail:^(int error) {
-                [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+                [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
             }];
             
         }else{
@@ -904,7 +904,7 @@ RCT_EXPORT_METHOD(getDailyData:(nonnull NSString *)mac){
         
         if ([self getAM6WithMac:mac]!=nil) {
             
-            __weak typeof(self) weakSelf = self;
+            __weak __typeof__(self) weakSelf = self;
 
             [[self getAM6WithMac:mac] syncDailyActivityReportWithSuccess:^{
                 
@@ -935,7 +935,7 @@ RCT_EXPORT_METHOD(getDailyData:(nonnull NSString *)mac){
                     
                 }
                 
-                [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+                [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                     AM6_ACTION:ACTION_GET_DAILYDATA,
                     AM6_KEY_MAC:mac,
                     AM6_TYPE:DEVICE_TYPE,
@@ -943,7 +943,7 @@ RCT_EXPORT_METHOD(getDailyData:(nonnull NSString *)mac){
                 }];
                 
             } fail:^(int error) {
-                [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+                [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
             }];
             
         }else{
@@ -958,7 +958,7 @@ RCT_EXPORT_METHOD(getStepData:(nonnull NSString *)mac){
         
         if ([self getAM6WithMac:mac]!=nil) {
             
-            __weak typeof(self) weakSelf = self;
+            __weak __typeof__(self) weakSelf = self;
 
             [[self getAM6WithMac:mac] syncDailyStepsCalorieDistanceWithSuccess:^{
                 
@@ -990,7 +990,7 @@ RCT_EXPORT_METHOD(getStepData:(nonnull NSString *)mac){
                     
                 }
                 
-                [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+                [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                     AM6_ACTION:ACTION_GET_STEPDATA,
                     AM6_KEY_MAC:mac,
                     AM6_TYPE:DEVICE_TYPE,
@@ -998,7 +998,7 @@ RCT_EXPORT_METHOD(getStepData:(nonnull NSString *)mac){
                 }];
                 
             } fail:^(int error) {
-                [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+                [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
             }];
             
         }else{
@@ -1012,7 +1012,7 @@ RCT_EXPORT_METHOD(getSleepData:(nonnull NSString *)mac){
         
         if ([self getAM6WithMac:mac]!=nil) {
             
-            __weak typeof(self) weakSelf = self;
+            __weak __typeof__(self) weakSelf = self;
 
             [[self getAM6WithMac:mac] syncSleepWithSuccess:^{
                 
@@ -1049,7 +1049,7 @@ RCT_EXPORT_METHOD(getSleepData:(nonnull NSString *)mac){
                     
                 }
                 
-                [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+                [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                     AM6_ACTION:ACTION_GET_SLEEPDATA,
                     AM6_KEY_MAC:mac,
                     AM6_TYPE:DEVICE_TYPE,
@@ -1057,7 +1057,7 @@ RCT_EXPORT_METHOD(getSleepData:(nonnull NSString *)mac){
                 }];
                 
             } fail:^(int error) {
-                [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+                [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
             }];
             
         }else{
@@ -1072,7 +1072,7 @@ RCT_EXPORT_METHOD(getHeartRateData:(nonnull NSString *)mac){
         
         if ([self getAM6WithMac:mac]!=nil) {
             
-            __weak typeof(self) weakSelf = self;
+            __weak __typeof__(self) weakSelf = self;
 
             [[self getAM6WithMac:mac] syncDailyHeartRateWithSuccess:^{
                 
@@ -1105,7 +1105,7 @@ RCT_EXPORT_METHOD(getHeartRateData:(nonnull NSString *)mac){
                     
                 }
                 
-                [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+                [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                     AM6_ACTION:ACTION_GET_HEARTRATE,
                     AM6_KEY_MAC:mac,
                     AM6_TYPE:DEVICE_TYPE,
@@ -1113,7 +1113,7 @@ RCT_EXPORT_METHOD(getHeartRateData:(nonnull NSString *)mac){
                 }];
                 
             } fail:^(int error) {
-                [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+                [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
             }];
             
         }else{
@@ -1128,7 +1128,7 @@ RCT_EXPORT_METHOD(getBloodOxygenData:(nonnull NSString *)mac){
         
         if ([self getAM6WithMac:mac]!=nil) {
             
-            __weak typeof(self) weakSelf = self;
+            __weak __typeof__(self) weakSelf = self;
 
             [[self getAM6WithMac:mac] syncOfflineBloodOxygenWithSuccess:^{
                 
@@ -1150,7 +1150,7 @@ RCT_EXPORT_METHOD(getBloodOxygenData:(nonnull NSString *)mac){
                     
                 }
                 
-                [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+                [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                     AM6_ACTION:ACTION_GET_BLOODOXYGEN,
                     AM6_KEY_MAC:mac,
                     AM6_TYPE:DEVICE_TYPE,
@@ -1158,7 +1158,7 @@ RCT_EXPORT_METHOD(getBloodOxygenData:(nonnull NSString *)mac){
                 }];
                 
             } fail:^(int error) {
-                [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+                [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
             }];
             
         }else{
@@ -1173,7 +1173,7 @@ RCT_EXPORT_METHOD(getActivityData:(nonnull NSString *)mac){
         
         if ([self getAM6WithMac:mac]!=nil) {
             
-            __weak typeof(self) weakSelf = self;
+            __weak __typeof__(self) weakSelf = self;
 
             [[self getAM6WithMac:mac] syncSportWithSuccess:^{
                 
@@ -1249,7 +1249,7 @@ RCT_EXPORT_METHOD(getActivityData:(nonnull NSString *)mac){
                     
                 }
                 
-                [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+                [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                     AM6_ACTION:ACTION_GET_ACTIVITY,
                     AM6_KEY_MAC:mac,
                     AM6_TYPE:DEVICE_TYPE,
@@ -1257,7 +1257,7 @@ RCT_EXPORT_METHOD(getActivityData:(nonnull NSString *)mac){
                 }];
                 
             } fail:^(int error) {
-                [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+                [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
             }];
             
         }else{
@@ -1271,11 +1271,11 @@ RCT_EXPORT_METHOD(deleteData:(nonnull NSString *)mac :(int)type){
         
         if ([self getAM6WithMac:mac]!=nil) {
             
-            __weak typeof(self) weakSelf = self;
+            __weak __typeof__(self) weakSelf = self;
 
             [[self getAM6WithMac:mac] deleteDataWithType:type success:^{
                 
-                [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+                [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                     AM6_ACTION:ACTION_DELETEDATA,
                     AM6_KEY_MAC:mac,
                     AM6_TYPE:DEVICE_TYPE,
@@ -1286,7 +1286,7 @@ RCT_EXPORT_METHOD(deleteData:(nonnull NSString *)mac :(int)type){
                 
                 if(error==AM6DeviceError_ActionFail){
                     
-                    [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+                    [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                         AM6_ACTION:ACTION_DELETEDATA,
                         AM6_KEY_MAC:mac,
                         AM6_TYPE:DEVICE_TYPE,
@@ -1295,7 +1295,7 @@ RCT_EXPORT_METHOD(deleteData:(nonnull NSString *)mac :(int)type){
                     
                 }else{
                     
-                    [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+                    [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
                 }
                 
                
@@ -1311,13 +1311,13 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString *)mac){
         
         if ([self getAM6WithMac:mac]!=nil) {
             
-            __weak typeof(self) weakSelf = self;
+            __weak __typeof__(self) weakSelf = self;
             
             NSString*deviceMAC=[[self getAM6WithMac:mac].serialNumber copy];
 
             [[self getAM6WithMac:mac] commandAM6Disconnect:^{
                 
-                [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:@{
+                [weakSelf sendEventWithName:AM6_EVENT_NOTIFY body:@{
                     AM6_ACTION:AM6_DISCONNECT_DEVICE,
                     AM6_KEY_MAC:deviceMAC,
                     AM6_TYPE:DEVICE_TYPE,
@@ -1326,7 +1326,7 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString *)mac){
                 
             } fail:^(int error) {
                
-                [AM6ProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
+                [AM6ProfileModule sendErrorToEmitter:weakSelf eventNotify:AM6_EVENT_NOTIFY WithCode:error  mac:mac];
             }];
             
         }else{
@@ -1335,5 +1335,6 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString *)mac){
         }
         
 }
+
 
 @end
