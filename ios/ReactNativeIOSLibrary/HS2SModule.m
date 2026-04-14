@@ -22,9 +22,21 @@
 #define kTYPE_HS2S     @"HS2S"
 
 @implementation HS2SModule
-@synthesize bridge = _bridge;
+
+
+- (instancetype)init
+{
+  // initWithDisabledObservation sets _observationDisabled = YES so that
+  // sendEventWithName:body: always dispatches regardless of _listenerCount.
+  // This is required for React Native New Architecture (TurboModule) compatibility.
+  return [super initWithDisabledObservation];
+}
 
 RCT_EXPORT_MODULE()
+
+- (NSArray<NSString *> *)supportedEvents {
+    return @[EVENT_NOTIFY];
+}
 
 #pragma mark-init
 
@@ -72,7 +84,7 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
     }
     
     NSDictionary* deviceInfo = @{kACTION_KEY:ACTION_GET_ALL_CONNECTED_DEVICES,@"devices":deviceMacArray};
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
     
     
 }
@@ -90,7 +102,7 @@ RCT_EXPORT_METHOD(getDeviceInfo:(nonnull NSString*)mac){
                                             HS2S_DEVICE_UNIT:[deviceInfo valueForKey:@"Unit"],
                                             HS2S_DEVICE_USER_COUNT:[deviceInfo valueForKey:@"UserCount"]
             };
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfoDic];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfoDic];
             
         } DiaposeErrorBlock:^(HS2SDeviceError errorID) {
             
@@ -107,7 +119,7 @@ RCT_EXPORT_METHOD(getBattery:(nonnull NSString*)mac){
             
             NSDictionary *deviceInfo = @{kMAC_KEY:mac,kTYPE_KEY:kTYPE_HS2S,kACTION_KEY:ACTION_BATTARY_HS,HS2S_DEVICE_BATTERY:battary};
                        
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
                        
             
         } DiaposeErrorBlock:^(HS2SDeviceError errorID) {
@@ -141,11 +153,11 @@ RCT_EXPORT_METHOD(setUnit:(nonnull NSString*)mac :(nonnull NSNumber*)unit){
                }
         
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
 
         [[self getHS2SWithMac:mac] commandSetHS2SUnit:tempUnit result:^(BOOL result) {
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                 
             kMAC_KEY:mac,
             
@@ -171,7 +183,7 @@ RCT_EXPORT_METHOD(getUserInfo:(nonnull NSString*)mac){
     
     if ([self getHS2SWithMac:mac] != nil) {
         
-          __weak typeof(self) weakSelf = self;
+          __weak __typeof__(self) weakSelf = self;
 
         [[self getHS2SWithMac:mac]commandGetHS2SUserInfo:^(NSDictionary *userInfo) {
             
@@ -181,7 +193,7 @@ RCT_EXPORT_METHOD(getUserInfo:(nonnull NSString*)mac){
             NSMutableArray*resultArray=[NSMutableArray array];
             
             
-            if (tempUserArray>0) {
+            if (tempUserArray) {
                 
                 for (int i=0; i<tempUserArray.count; i++) {
                     
@@ -217,7 +229,7 @@ RCT_EXPORT_METHOD(getUserInfo:(nonnull NSString*)mac){
             
             
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                 
             kMAC_KEY:mac,
             
@@ -286,12 +298,12 @@ RCT_EXPORT_METHOD(updateUserInfo:(nonnull NSString*)mac :(nonnull NSString*)user
            user.fitnessMark=HS2SFitnessMark_YES;
         }
        
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
 
         [[self getHS2SWithMac:mac] commandUpdateHS2SUserInfoWithUser:user result:^(BOOL result) {
             
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                            
                        kMAC_KEY:mac,
                        
@@ -319,13 +331,13 @@ RCT_EXPORT_METHOD(deleteUser:(nonnull NSString*)mac :(nonnull NSString*)userID){
     NSData *userIDData =[userID dataUsingEncoding:NSUTF8StringEncoding];
     
     
-    __weak typeof(self) weakSelf = self;
+    __weak __typeof__(self) weakSelf = self;
     
     if ([self getHS2SWithMac:mac] != nil) {
 
         [[self getHS2SWithMac:mac]commandDeleteHS2SUserWithUserID:userIDData result:^(BOOL result) {
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                       
                                   kMAC_KEY:mac,
                                   
@@ -350,13 +362,13 @@ RCT_EXPORT_METHOD(getMemoryDataCount:(nonnull NSString*)mac :(nonnull NSString*)
     
     NSData *userIDData =[userID dataUsingEncoding:NSUTF8StringEncoding];
     
-     __weak typeof(self) weakSelf = self;
+     __weak __typeof__(self) weakSelf = self;
     
     if ([self getHS2SWithMac:mac] != nil) {
 
         [[self getHS2SWithMac:mac]commandGetHS2SMemoryDataCountWithUserID:userIDData memoryCount:^(NSNumber *count) {
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                  
                                              kMAC_KEY:mac,
                                              
@@ -381,7 +393,7 @@ RCT_EXPORT_METHOD(getMemoryData:(nonnull NSString*)mac :(nonnull NSString*)userI
     
     NSData *userIDData =[userID dataUsingEncoding:NSUTF8StringEncoding];
     
-     __weak typeof(self) weakSelf = self;
+     __weak __typeof__(self) weakSelf = self;
     
     if ([self getHS2SWithMac:mac] != nil) {
 
@@ -392,7 +404,7 @@ RCT_EXPORT_METHOD(getMemoryData:(nonnull NSString*)mac :(nonnull NSString*)userI
             NSMutableArray*resultArray=[NSMutableArray array];
             
             
-            if (data>0) {
+            if (data) {
                 
                 for (int i=0; i<data.count; i++) {
                     
@@ -466,7 +478,7 @@ RCT_EXPORT_METHOD(getMemoryData:(nonnull NSString*)mac :(nonnull NSString*)userI
             
             
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             
                                                         kMAC_KEY:mac,
                                                         
@@ -492,13 +504,13 @@ RCT_EXPORT_METHOD(deleteMemoryData:(nonnull NSString*)mac :(nonnull NSString*)us
     
     NSData *userIDData =[userID dataUsingEncoding:NSUTF8StringEncoding];
     
-     __weak typeof(self) weakSelf = self;
+     __weak __typeof__(self) weakSelf = self;
     
     if ([self getHS2SWithMac:mac] != nil) {
 
         [[self getHS2SWithMac:mac]commandDeleteHS2SMemoryDataWithUserID:userIDData result:^(BOOL result) {
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                  
                                              kMAC_KEY:mac,
                                              
@@ -521,13 +533,13 @@ RCT_EXPORT_METHOD(deleteMemoryData:(nonnull NSString*)mac :(nonnull NSString*)us
 
 RCT_EXPORT_METHOD(getAnonymousMemoryDataCount:(nonnull NSString*)mac){
     
-    __weak typeof(self) weakSelf = self;
+    __weak __typeof__(self) weakSelf = self;
     
     if ([self getHS2SWithMac:mac] != nil) {
 
         [[self getHS2SWithMac:mac]commandGetHS2SAnonymousMemoryDataCount:^(NSNumber *count) {
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             
                                                         kMAC_KEY:mac,
                                                         
@@ -551,7 +563,7 @@ RCT_EXPORT_METHOD(getAnonymousMemoryDataCount:(nonnull NSString*)mac){
 RCT_EXPORT_METHOD(getAnonymousMemoryData:(nonnull NSString*)mac){
     
     
-     __weak typeof(self) weakSelf = self;
+     __weak __typeof__(self) weakSelf = self;
     
 
     if ([self getHS2SWithMac:mac] != nil) {
@@ -562,7 +574,7 @@ RCT_EXPORT_METHOD(getAnonymousMemoryData:(nonnull NSString*)mac){
             NSMutableArray*resultArray=[NSMutableArray array];
                       
                       
-                      if (data>0) {
+                      if (data) {
                           
                           for (int i=0; i<data.count; i++) {
                               
@@ -589,7 +601,7 @@ RCT_EXPORT_METHOD(getAnonymousMemoryData:(nonnull NSString*)mac){
                       }
             
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                                        
                                                                    kMAC_KEY:mac,
                                                                    
@@ -612,14 +624,14 @@ RCT_EXPORT_METHOD(getAnonymousMemoryData:(nonnull NSString*)mac){
 
 RCT_EXPORT_METHOD(deleteAnonymousMemoryData:(nonnull NSString*)mac){
     
-    __weak typeof(self) weakSelf = self;
+    __weak __typeof__(self) weakSelf = self;
     
 
     if ([self getHS2SWithMac:mac] != nil) {
 
         [[self getHS2SWithMac:mac]commandDeleteHS2SAnonymousMemoryData:^(BOOL result) {
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                 
             kMAC_KEY:mac,
             
@@ -703,13 +715,13 @@ RCT_EXPORT_METHOD(measure:(nonnull NSString*)mac :(nonnull NSNumber*)userType :(
         [[self getHS2SWithMac:mac]commandStartHS2SMeasureWithUser:user weight:^(NSNumber *unStableWeight) {
             
              NSDictionary *deviceInfo = @{kMAC_KEY:mac,kTYPE_KEY:kTYPE_HS2S,kACTION_KEY:ACTION_HS2S_ONLINE_DATA,HS2S_WEIGTH:unStableWeight};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } stableWeight:^(NSNumber *stableWeight) {
             
              NSDictionary *deviceInfo =@{kMAC_KEY:mac,kTYPE_KEY:kTYPE_HS2S,kACTION_KEY:ACTION_HS2S_ONLINE_RESULT,HS2S_WEIGTH:stableWeight };
          
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } weightAndBodyInfo:^(NSDictionary *weightAndBodyInfoDic) {
             
@@ -774,14 +786,14 @@ RCT_EXPORT_METHOD(measure:(nonnull NSString*)mac :(nonnull NSNumber*)userType :(
             
             NSDictionary *deviceInfo =@{kMAC_KEY:mac,kTYPE_KEY:kTYPE_HS2S,kACTION_KEY:ACTION_HS2S_BODYFAT_RESULT,HS2S_DATA_BODY_FAT_RESULT:resultDic };
             
-               [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+               [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
             
         } disposeHS2SMeasureFinish:^{
             
             NSDictionary *deviceInfo =@{kMAC_KEY:mac,kTYPE_KEY:kTYPE_HS2S,kACTION_KEY:ACTION_HS2S_MEASURE_FINISH};
             
-               [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+               [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } DiaposeErrorBlock:^(HS2SDeviceError errorID) {
             
@@ -796,14 +808,14 @@ RCT_EXPORT_METHOD(measure:(nonnull NSString*)mac :(nonnull NSNumber*)userType :(
 RCT_EXPORT_METHOD(resetDevice:(nonnull NSString*)mac){
     
     
-    __weak typeof(self) weakSelf = self;
+    __weak __typeof__(self) weakSelf = self;
     
 
     if ([self getHS2SWithMac:mac] != nil) {
 
         [[self getHS2SWithMac:mac]commandResetHS2SDevice:^(BOOL result) {
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                 
             kMAC_KEY:mac,
             
@@ -827,14 +839,14 @@ RCT_EXPORT_METHOD(resetDevice:(nonnull NSString*)mac){
 //RCT_EXPORT_METHOD(broadCastTypeDevice:(nonnull NSString*)mac){
 //
 //
-//    __weak typeof(self) weakSelf = self;
+//    __weak __typeof__(self) weakSelf = self;
 //
 //
 //    if ([self getHS2SWithMac:mac] != nil) {
 //
 //        [[self getHS2SWithMac:mac]commandBroadCastTypeHS2SDevice:^(BOOL result) {
 //
-//            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+//            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
 //
 //            kMAC_KEY:mac,
 //
@@ -859,14 +871,14 @@ RCT_EXPORT_METHOD(resetDevice:(nonnull NSString*)mac){
 RCT_EXPORT_METHOD(setDeviceLightUp:(nonnull NSString*)mac){
     
     
-    __weak typeof(self) weakSelf = self;
+    __weak __typeof__(self) weakSelf = self;
     
 
     if ([self getHS2SWithMac:mac] != nil) {
         
         
         [[self getHS2SWithMac:mac] commandSetHS2SDeviceLightUp:^(BOOL result) {
-             [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+             [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                            
                        kMAC_KEY:mac,
                        
@@ -891,7 +903,7 @@ RCT_EXPORT_METHOD(setDeviceLightUp:(nonnull NSString*)mac){
 RCT_EXPORT_METHOD(enterHS2SProHeartRateMeasurementMode:(nonnull NSString*)mac){
     
     
-    __weak typeof(self) weakSelf = self;
+    __weak __typeof__(self) weakSelf = self;
     
 
     if ([self getHS2SWithMac:mac] != nil) {
@@ -899,7 +911,7 @@ RCT_EXPORT_METHOD(enterHS2SProHeartRateMeasurementMode:(nonnull NSString*)mac){
         
         [[self getHS2SWithMac:mac] commandEnterHS2SHeartRateMeasurementMode:^(NSDictionary *heartResultDic) {
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                       
                                   kMAC_KEY:mac,
                                   
@@ -914,7 +926,7 @@ RCT_EXPORT_METHOD(enterHS2SProHeartRateMeasurementMode:(nonnull NSString*)mac){
         } measurementStatus:^(NSNumber *measurementStatus) {
             
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                       
                                   kMAC_KEY:mac,
                                   
@@ -940,7 +952,7 @@ RCT_EXPORT_METHOD(enterHS2SProHeartRateMeasurementMode:(nonnull NSString*)mac){
 RCT_EXPORT_METHOD(exitHS2SProHeartRateMeasurementMode:(nonnull NSString*)mac){
     
     
-    __weak typeof(self) weakSelf = self;
+    __weak __typeof__(self) weakSelf = self;
     
 
     if ([self getHS2SWithMac:mac] != nil) {
@@ -949,7 +961,7 @@ RCT_EXPORT_METHOD(exitHS2SProHeartRateMeasurementMode:(nonnull NSString*)mac){
         [[self getHS2SWithMac:mac] commandExitHS2SHeartRateMeasurementMode:^(BOOL result) {
             
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                 
             kMAC_KEY:mac,
             
@@ -1020,7 +1032,7 @@ RCT_EXPORT_METHOD(exitHS2SProHeartRateMeasurementMode:(nonnull NSString*)mac){
                 }
     
                 NSDictionary *deviceInfo = @{kMAC_KEY:mac,kACTION_KEY:ACTION_ERROR_HS,ERROR_NUM_HS:errorMassage};
-                [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+                [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
     
     
 }
@@ -1038,8 +1050,8 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString*)mac){
 
 
 - (void)sendEventWithAction:(NSString*)actionName keyString:(NSString*)key valueString:(id)value{
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{kACTION_KEY:actionName,key:value}];
+    [self sendEventWithName:EVENT_NOTIFY body:@{kACTION_KEY:actionName,key:value}];
 }
 
-@end
 
+@end

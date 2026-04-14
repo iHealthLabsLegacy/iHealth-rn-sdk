@@ -23,8 +23,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-@ReactModule(name = "HS2SProModule")
+@ReactModule(name = HS2SProModule.MODULE_NAME)
 public class HS2SProModule extends iHealthBaseModule {
+    public static final String MODULE_NAME = "HS2SProModule";
+
     private static final String modelName = "HS2SProModule";
     private static final String TAG = "HS2SProModule";
 
@@ -36,7 +38,7 @@ public class HS2SProModule extends iHealthBaseModule {
 
     @Override
     public String getName() {
-        return modelName;
+        return MODULE_NAME;
     }
 
     @Override
@@ -417,4 +419,10 @@ public class HS2SProModule extends iHealthBaseModule {
         }
         return charString.toString(); 
     }
+
+    @ReactMethod
+    public void addListener(String eventName) {}
+
+    @ReactMethod
+    public void removeListeners(double count) {}
 }

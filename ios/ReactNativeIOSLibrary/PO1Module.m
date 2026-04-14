@@ -22,10 +22,12 @@
 #define kMAC_KEY        @"mac"
 #define kACTION_KEY     @"action"
 
-@synthesize bridge = _bridge;
 
 RCT_EXPORT_MODULE()
 
+- (NSArray<NSString *> *)supportedEvents {
+    return @[EVENT_NOTIFY];
+}
 
 #pragma mark
 #pragma mark - constantsToExport
@@ -43,7 +45,7 @@ RCT_EXPORT_MODULE()
 #pragma mark - Init
 -(id)init
 {
-    if (self=[super init])
+    if (self=[super initWithDisabledObservation])
     {
        
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(devicePO1Measure:) name:@"PO1NotificationMeasureData" object:nil];
@@ -62,7 +64,7 @@ RCT_EXPORT_MODULE()
     NSLog(@"devicePO1Measure:%@",measureDataDic);
     
     NSDictionary* deviceInfo = @{kACTION_KEY:@"ACTION_BO_MEASUREMENT",@"WAVE":[measureDataDic valueForKey:@"wave"],@"PI":[measureDataDic valueForKey:@"PI"],@"PULSE_FORCE":[measureDataDic valueForKey:@"height"],@"BLOOD_OXYGEN":[measureDataDic valueForKey:@"spo2"],@"PULSE":[measureDataDic valueForKey:@"bpm"]};
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
 }
 
 
@@ -106,7 +108,7 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
     
     NSDictionary* deviceInfo = @{kACTION_KEY:@"ACTION_GET_ALL_CONNECTED_DEVICES",@"devices":deviceMacArray};
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
     
     
 }
@@ -121,7 +123,7 @@ RCT_EXPORT_METHOD(getBattery:(nonnull NSString *)mac){
         [[self getPO1WithMac:mac] commandPO1GetDeviceBattery:^(NSNumber *battery) {
             
             NSDictionary* deviceInfo = @{kACTION_KEY:@"ACTION_GET_BATTERY",@"BATTERY":battery};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withErrorBlock:^(PO1ErrorID errorID) {
             
@@ -129,7 +131,7 @@ RCT_EXPORT_METHOD(getBattery:(nonnull NSString *)mac){
     }else{
         
         NSDictionary* deviceInfo = @{kACTION_KEY:@"ACTION_ERROR_PO1",@"ERROR_DESCRIPTION":@"disconnect"};
-        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+        [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         
     }
     
@@ -152,6 +154,7 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString *)mac){
     
     
 }
+
 
 
 

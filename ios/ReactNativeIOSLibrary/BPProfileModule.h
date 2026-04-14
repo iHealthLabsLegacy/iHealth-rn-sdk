@@ -9,11 +9,14 @@
 #import <Foundation/Foundation.h>
 #if __has_include(<React/RCTAssert.h>)
 #import <React/RCTBridgeModule.h>
-#import <React/RCTEventDispatcher.h>
+#import <React/RCTEventEmitter.h>
 #else
 #import <React/RCTBridgeModule.h>
-#import <React/RCTEventDispatcher.h>
+#import <React/RCTEventEmitter.h>
 #endif
+
+@class RCTEventEmitter;
+
 @interface BPProfileModule : NSObject<RCTBridgeModule>
 
 #define kACTION_ERROR_BP @"error_bp"
@@ -120,6 +123,7 @@
 
 + (void)sendErrorToBridge:(RCTBridge *)bridge eventNotify:(NSString*)eventNotify WithCode:(NSInteger)errorCode;
 + (void)sendEventToBridge:(RCTBridge *)bridge eventNotify:(NSString*)eventNotify WithDict:(NSDictionary*)dict;
++ (void)sendEventToEmitter:(RCTEventEmitter *)emitter eventNotify:(NSString*)eventNotify WithDict:(NSDictionary*)dict;
 
 
 + (void)sendErrorToBridge:(RCTBridge *)bridge eventNotify:(NSString*)eventNotify WithCode:(NSInteger)errorCode mac:(NSString*)mac type:(NSString*)type;

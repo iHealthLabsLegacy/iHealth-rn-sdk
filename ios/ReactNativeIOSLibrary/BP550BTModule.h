@@ -10,12 +10,21 @@
 
 #if __has_include(<React/RCTAssert.h>)
 #import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
 #else
 #import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
+#endif
+#if RCT_NEW_ARCH_ENABLED
+#import <React/RCTTurboModule.h>
 #endif
 
 
-@interface BP550BTModule : NSObject<RCTBridgeModule>
+@interface BP550BTModule : RCTEventEmitter <RCTBridgeModule
+#if RCT_NEW_ARCH_ENABLED
+, RCTTurboModule
+#endif
+>
 {
 
 }

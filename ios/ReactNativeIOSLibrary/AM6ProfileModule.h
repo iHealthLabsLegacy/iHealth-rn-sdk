@@ -7,10 +7,14 @@
 
 #import <Foundation/Foundation.h>
 #if __has_include(<React/RCTAssert.h>)
-#import <React/RCTEventDispatcher.h>
+#import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
 #else
-#import <React/RCTEventDispatcher.h>
+#import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
 #endif
+
+@class RCTEventEmitter;
 
 @interface AM6ProfileModule : NSObject<RCTBridgeModule>
 
@@ -222,9 +226,11 @@
 
 
 + (void)sendErrorToBridge:(RCTBridge *)bridge eventNotify:(NSString*)eventNotify WithCode:(NSInteger)errorCode mac:(NSString*)mac;
++ (void)sendErrorToEmitter:(RCTEventEmitter *)emitter eventNotify:(NSString*)eventNotify WithCode:(NSInteger)errorCode mac:(NSString*)mac;
 
 + (NSData *)md5:(NSString *)hashString;
 
 +(void)sendNoDevice:(RCTBridge *)bridge;
++(void)sendNoDeviceToEmitter:(RCTEventEmitter *)emitter;
 @end
 

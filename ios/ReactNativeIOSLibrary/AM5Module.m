@@ -13,19 +13,24 @@
 #import "AM5Header.h"
 @implementation AM5Module{
 
-
     NSMutableDictionary*resultDic;
 
+}
+
+- (instancetype)init
+{
+  return [super initWithDisabledObservation];
 }
 
 #define EVENT_NOTIFY @"event_notify_am5"
 #define kMAC_KEY        @"mac"
 #define kACTION_KEY     @"action"
 
-@synthesize bridge = _bridge;
-
 RCT_EXPORT_MODULE()
 
+- (NSArray<NSString *> *)supportedEvents {
+    return @[EVENT_NOTIFY];
+}
 
 #pragma mark
 #pragma mark - constantsToExport
@@ -80,7 +85,7 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
     
     NSDictionary* deviceInfo = @{kACTION_KEY:kACTION_GET_ALL_CONNECTED_DEVICES,@"devices":deviceMacArray};
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
     
     
 }
@@ -90,14 +95,14 @@ RCT_EXPORT_METHOD(bindDevice:(nonnull NSString *)mac){
     
     
     if ([self getAM5WithMac:mac]) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         
         [[self getAM5WithMac:mac] commandBindingDevice:^(BOOL result) {
         
         NSLog(@"BindingDevice:%d",result);
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             kMAC_KEY:mac,
                                                             kACTION_KEY:kACTION_USER_BIND,
                                                             OPERATION_STATUS:@3,
@@ -118,14 +123,14 @@ RCT_EXPORT_METHOD(unBindDevice:(nonnull NSString *)mac){
     
     
     if ([self getAM5WithMac:mac]) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         
         [[self getAM5WithMac:mac] commandUnBindingDevice:^(BOOL result) {
         
         NSLog(@"BindingDevice:%d",result);
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             kMAC_KEY:mac,
                                                             kACTION_KEY:kACTION_USER_UNBIND,
                                                             OPERATION_STATUS:@3,
@@ -147,13 +152,13 @@ RCT_EXPORT_METHOD(getBasicInfo:(nonnull NSString *)mac){
 //Mode:Device mode    BatteryStatus:Battery status  BatteryLevel:Battery level RebootFlag:Whether to restart  BindTimeStr:Binding timestamp  BindState:Binding status
     
     if ([self getAM5WithMac:mac]) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         
         [[self getAM5WithMac:mac] commandGetDeviceInfo:^(NSMutableDictionary *DeviceInfo) {
             
             NSLog(@"DeviceINfo:%@",DeviceInfo);
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             kMAC_KEY:mac,
                                                             kACTION_KEY:kACTION_BASIC_INFO,
                                                             TYPE:@"AM5",
@@ -183,7 +188,7 @@ RCT_EXPORT_METHOD(setTime:(nonnull NSString *)mac){
     
     
     if ([self getAM5WithMac:mac]) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         
         [[self getAM5WithMac:mac] commandSetCurrentTime:^(BOOL result) {
@@ -194,7 +199,7 @@ RCT_EXPORT_METHOD(setTime:(nonnull NSString *)mac){
                 NSLog(@"SetCurrentTimeFaild");
             }
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             kMAC_KEY:mac,
                                                             kACTION_KEY:kACTION_SET_TIME,
                                                             TYPE:@"AM5",
@@ -215,7 +220,7 @@ RCT_EXPORT_METHOD(setUserInfo:(nonnull NSString *)mac :(nonnull NSNumber *)year:
 
     if ([self getAM5WithMac:mac]) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         IDOSetUserInfoBuletoothModel * userModel= [IDOSetUserInfoBuletoothModel currentModel];
         
@@ -234,7 +239,7 @@ RCT_EXPORT_METHOD(setUserInfo:(nonnull NSString *)mac :(nonnull NSNumber *)year:
         
         [[self getAM5WithMac:mac] commandSetUserInfo:userModel setResult:^(BOOL result) {
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             kMAC_KEY:mac,
                                                             kACTION_KEY:kACTION_SET_USER_INFO,
                                                             TYPE:@"AM5",
@@ -254,7 +259,7 @@ RCT_EXPORT_METHOD(setUnit:(nonnull NSString *)mac :(nonnull NSNumber *)type :(no
 
     if ([self getAM5WithMac:mac]) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         IDOSetUnitInfoBluetoothModel * unitInfo = [IDOSetUnitInfoBluetoothModel currentModel];
         
@@ -268,7 +273,7 @@ RCT_EXPORT_METHOD(setUnit:(nonnull NSString *)mac :(nonnull NSNumber *)type :(no
         
         [[self getAM5WithMac:mac] commandSetUnit:unitInfo setResult:^(BOOL result) {
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             kMAC_KEY:mac,
                                                             kACTION_KEY:kACTION_SET_UNIT,
                                                             TYPE:@"AM5",
@@ -287,7 +292,7 @@ RCT_EXPORT_METHOD(setHandWearMode:(nonnull NSString *)mac :(nonnull NSNumber *)m
 
     if ([self getAM5WithMac:mac]) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         IDOSetLeftOrRightInfoBuletoothModel * leftOrRightModel = [IDOSetLeftOrRightInfoBuletoothModel currentModel];
         
@@ -302,7 +307,7 @@ RCT_EXPORT_METHOD(setHandWearMode:(nonnull NSString *)mac :(nonnull NSNumber *)m
         
         [[self getAM5WithMac:mac] commandSetLeftRightHand:leftOrRightModel setResult:^(BOOL result) {
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             kMAC_KEY:mac,
                                                             kACTION_KEY:kACTION_SET_HAND_WEAR_MODE,
                                                             TYPE:@"AM5",
@@ -322,13 +327,13 @@ RCT_EXPORT_METHOD(getLiveData:(nonnull NSString *)mac){
 //Step:Step count Calorie:Calorie  Distances:distance ActiveTime:Duration of activity HeartRate:Heart rate
     if ([self getAM5WithMac:mac]) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM5WithMac:mac] commandGetLiveData:^(NSMutableDictionary *liveDataDic) {
             
             NSLog(@"liveDataDic:%@",liveDataDic);
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             kMAC_KEY:mac,
                                                             kACTION_KEY:kACTION_LIVE_DATA,
                                                             TYPE:@"AM5",
@@ -452,13 +457,13 @@ RCT_EXPORT_METHOD(syncHealthData:(nonnull NSString *)mac){
 
     if ([self getAM5WithMac:mac]) {
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getAM5WithMac:mac] commandSyncData:^(NSDictionary *syncDataDic) {
             
             NSLog(@"syncHeartRateDataDic:%@",syncDataDic);
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             kMAC_KEY:mac,
                                                             kACTION_KEY:kACTION_SYNC_HEALTH_DATA_HEART_RATE,
                                                             TYPE:@"AM5",
@@ -469,7 +474,7 @@ RCT_EXPORT_METHOD(syncHealthData:(nonnull NSString *)mac){
             
             NSLog(@"syncSleepDataDic:%@",syncDataDic);
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             kMAC_KEY:mac,
                                                             kACTION_KEY:kACTION_SYNC_HEALTH_DATA_SLEEP,
                                                             TYPE:@"AM5",
@@ -480,7 +485,7 @@ RCT_EXPORT_METHOD(syncHealthData:(nonnull NSString *)mac){
             
             NSLog(@"syncActivityDataDic:%@",syncDataDic);
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             kMAC_KEY:mac,
                                                             kACTION_KEY:kACTION_SYNC_HEALTH_DATA_SPORT,
                                                             TYPE:@"AM5",
@@ -491,7 +496,7 @@ RCT_EXPORT_METHOD(syncHealthData:(nonnull NSString *)mac){
             
             NSLog(@"syncDataProgress:%@",syncDataProgress);
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             kMAC_KEY:mac,
                                                             kACTION_KEY:kACTION_SYNC_HEALTH_DATA,
                                                             TYPE:@"AM5",
@@ -512,12 +517,12 @@ RCT_EXPORT_METHOD(syncHealthData:(nonnull NSString *)mac){
 
 RCT_EXPORT_METHOD(stopSyncHealthData:(nonnull NSString *)mac){
     
-    __weak typeof(self) weakSelf = self;
+    __weak __typeof__(self) weakSelf = self;
     
     if ([self getAM5WithMac:mac]!=nil) {
         
        
-      [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+      [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             kMAC_KEY:mac,
                                                             kACTION_KEY:kACTION_NOTICE_COMMING_CALL_STOP,
                                                             TYPE:@"AM5"
@@ -535,13 +540,13 @@ RCT_EXPORT_METHOD(stopSyncHealthData:(nonnull NSString *)mac){
 
 RCT_EXPORT_METHOD(reboot:(nonnull NSString *)mac){
     
-    __weak typeof(self) weakSelf = self;
+    __weak __typeof__(self) weakSelf = self;
     
     if ([self getAM5WithMac:mac]!=nil) {
         
         [[self getAM5WithMac:mac] commandSetAppReboot:^(BOOL result) {
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             kMAC_KEY:mac,
                                                             kACTION_KEY:BASIC_REBOOT,
                                                             TYPE:@"AM5"
@@ -579,6 +584,7 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString *)mac){
     
     
 }
+
 
 
 

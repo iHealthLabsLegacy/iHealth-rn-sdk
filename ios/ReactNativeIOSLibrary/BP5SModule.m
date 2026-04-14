@@ -33,8 +33,20 @@
 
 
 @implementation BP5SModule
-@synthesize bridge = _bridge;
+
+- (instancetype)init
+{
+  // initWithDisabledObservation sets _observationDisabled = YES so that
+  // sendEventWithName:body: always dispatches regardless of _listenerCount.
+  // This is required for React Native New Architecture (TurboModule) compatibility.
+  return [super initWithDisabledObservation];
+}
+
 RCT_EXPORT_MODULE()
+
+- (NSArray<NSString *> *)supportedEvents {
+    return @[EVENT_NOTIFY];
+}
 
 - (NSDictionary *)constantsToExport
 {
@@ -85,7 +97,7 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
     
     NSDictionary* deviceInfo = @{kACTION_KEY:@"action_get_all_connected_devices",@"devices":deviceMacArray};
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
     
 }
 
@@ -94,7 +106,7 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
 RCT_EXPORT_METHOD(startMeasure:(nonnull NSString *)mac){
     
     if ([self getDeviceWithMac:mac]!=nil) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getDeviceWithMac:mac] commandStartMeasureWithZeroingState:^(BOOL isComplete) {
             weakSelf.isMeasuring = YES;
@@ -102,7 +114,7 @@ RCT_EXPORT_METHOD(startMeasure:(nonnull NSString *)mac){
 							kMAC_KEY:mac,kTYPE_KEY:kTYPE_BP5S,
                                        kACTION:isComplete ? kACTION_ZOREOVER_BP : kACTION_ZOREING_BP,
                                        };
-            [BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
         } pressure:^(NSArray *pressureArr) {
             weakSelf.isMeasuring = YES;
 					
@@ -114,7 +126,7 @@ RCT_EXPORT_METHOD(startMeasure:(nonnull NSString *)mac){
                                        kACTION:kACTION_ONLINE_PRESSURE_BP,
                                        kBLOOD_PRESSURE_BP:weakSelf.bpPr,
                                        };
-            [BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
         } waveletWithHeartbeat:^(NSArray *waveletArr) {
             weakSelf.isMeasuring = YES;
 
@@ -126,7 +138,7 @@ RCT_EXPORT_METHOD(startMeasure:(nonnull NSString *)mac){
                                        kPULSEWAVE_BP:waveletArr,
 																			 kBLOOD_PRESSURE_BP:weakSelf.bpPr,
                                        };
-            [BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
         } waveletWithoutHeartbeat:^(NSArray *waveletArr) {
             weakSelf.isMeasuring = YES;
 
@@ -138,7 +150,7 @@ RCT_EXPORT_METHOD(startMeasure:(nonnull NSString *)mac){
                                        kPULSEWAVE_BP:waveletArr,
 																			 kBLOOD_PRESSURE_BP:weakSelf.bpPr,
                                        };
-            [BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
         } result:^(NSDictionary *resultDict) {
             weakSelf.isMeasuring = NO;
 	
@@ -153,7 +165,7 @@ RCT_EXPORT_METHOD(startMeasure:(nonnull NSString *)mac){
                                        kDATAID:resultDict[@"dataID"],
 																			 kMEASUREMENT_HSD_BP:resultDict[@"hsdValue"],
                                        };
-            [BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
         } errorBlock:^(BPDeviceError error) {
             weakSelf.isMeasuring = NO;
             NSLog(@"error %lu",(unsigned long)error);
@@ -174,7 +186,7 @@ RCT_EXPORT_METHOD(stopMeasure:(nonnull NSString *)mac){
         [BPProfileModule sendErrorToBridge:self.bridge eventNotify:EVENT_NOTIFY WithCode:401];
         return;
     }
-    __weak typeof(self) weakSelf = self;
+    __weak __typeof__(self) weakSelf = self;
     if ([self getDeviceWithMac:mac]!=nil) {
         [[self getDeviceWithMac:mac] stopBPMeassureSuccessBlock:^{
             
@@ -184,7 +196,7 @@ RCT_EXPORT_METHOD(stopMeasure:(nonnull NSString *)mac){
 																			 kTYPE_KEY:kTYPE_BP5S,
                                        kACTION:kACTION_INTERRUPTED_BP,
                                        };
-            [BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
             
         } errorBlock:^(BPDeviceError error) {
             
@@ -207,14 +219,14 @@ RCT_EXPORT_METHOD(stopMeasure:(nonnull NSString *)mac){
 RCT_EXPORT_METHOD(deleteData:(nonnull NSString *)mac){
     
     if ([self getDeviceWithMac:mac]!=nil) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         [[self getDeviceWithMac:mac] commandDeleteDataSuccessBlock:^{
             NSDictionary* response = @{
                                        kMAC_KEY:mac,
 																			 kTYPE_KEY:kTYPE_BP5S,
 																			 kACTION:kACTION_DELETE_ALL_MEMORY_SUCCESS,
                                        };
-            [BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
         } errorBlock:^(BPDeviceError error) {
             NSLog(@"error %lu",(unsigned long)error);
             [BPProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithCode:error];
@@ -230,7 +242,7 @@ RCT_EXPORT_METHOD(enbleOffline:(nonnull NSString *)mac mode:(nonnull NSNumber *)
     
     if ([self getDeviceWithMac:mac]!=nil) {
         __block BOOL success = YES;
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         BOOL flag;
         
@@ -247,7 +259,7 @@ RCT_EXPORT_METHOD(enbleOffline:(nonnull NSString *)mac mode:(nonnull NSNumber *)
 																					 kTYPE_KEY:kTYPE_BP5S,
                                            kACTION:kACTION_SET_MODE,
                                            };
-                [BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+                [BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
             
         } error:^(BPDeviceError error) {
             success = NO;
@@ -263,7 +275,7 @@ RCT_EXPORT_METHOD(enbleOffline:(nonnull NSString *)mac mode:(nonnull NSNumber *)
 RCT_EXPORT_METHOD(getBattery:(nonnull NSString *)mac){
     
     if ([self getDeviceWithMac:mac]!=nil) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
 			
 			[[self getDeviceWithMac:mac] commandEnergy:^(NSNumber *energyValue) {
 				NSDictionary* response = @{
@@ -273,7 +285,7 @@ RCT_EXPORT_METHOD(getBattery:(nonnull NSString *)mac){
 																	 kBATTERY_BP:energyValue,
 																	 @"batteryStatus":@1
 																	 };
-				[BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+				[BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
 			} energyState:^(NSNumber *energyState) {
 				
 				
@@ -292,7 +304,7 @@ RCT_EXPORT_METHOD(getBattery:(nonnull NSString *)mac){
 RCT_EXPORT_METHOD(getOffLineNum:(nonnull NSString *)mac){
     
     if ([self getDeviceWithMac:mac]!=nil) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         [[self getDeviceWithMac:mac]commandTransferMemoryTotalCount:^(NSNumber *num) {
             
             NSDictionary* response = @{
@@ -301,7 +313,7 @@ RCT_EXPORT_METHOD(getOffLineNum:(nonnull NSString *)mac){
                                        kACTION:kACTION_HISTORICAL_NUM_BP,
                                        kHISTORICAL_NUM_BP:num
                                        };
-            [BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
             
         } errorBlock:^(BPDeviceError error) {
             
@@ -319,7 +331,7 @@ RCT_EXPORT_METHOD(getOffLineNum:(nonnull NSString *)mac){
 RCT_EXPORT_METHOD(getOffLineData:(nonnull NSString *)mac){
     
     if ([self getDeviceWithMac:mac]!=nil) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getDeviceWithMac:mac] commandTransferMemoryDataWithTotalCount:^(NSNumber *count) {
 					
@@ -327,10 +339,10 @@ RCT_EXPORT_METHOD(getOffLineData:(nonnull NSString *)mac){
             if ([count integerValue] == 0) {
 							
 							NSDictionary* response = @{kMAC_KEY:mac,kTYPE_KEY:kTYPE_BP5S,kACTION:kACTION_HISTORICAL_DATA_BP };
-							[BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+							[BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
 							
                 NSDictionary* response1 = @{kMAC_KEY:mac,kTYPE_KEY:kTYPE_BP5S,kACTION:kACTION_GETHISTORY_OVER_BP };
-                [BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response1];
+                [BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response1];
 						}
         } progress:^(NSNumber *progress) {
             
@@ -389,7 +401,7 @@ RCT_EXPORT_METHOD(getOffLineData:(nonnull NSString *)mac){
                                            kACTION:kACTION_HISTORICAL_DATA_BP,
                                            kHISTORICAL_DATA_BP:[tempArr copy]
                                            };
-                [BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+                [BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
             }
             
         } errorBlock:^(BPDeviceError error) {
@@ -408,7 +420,7 @@ RCT_EXPORT_METHOD(getOffLineData:(nonnull NSString *)mac){
 RCT_EXPORT_METHOD(getFunctionInfo:(nonnull NSString *)mac){
     
     if ([self getDeviceWithMac:mac]!=nil) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         [[self getDeviceWithMac:mac] commandFunction:^(NSDictionary *dic) {
 
 					
@@ -443,7 +455,7 @@ RCT_EXPORT_METHOD(getFunctionInfo:(nonnull NSString *)mac){
 																			 @"function_right_or_left_limb_machine":@0,
 																			 @"function_operating_state":@0,
 																			 };
-						[BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+						[BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
 						
 					}else{
 						
@@ -474,7 +486,7 @@ RCT_EXPORT_METHOD(getFunctionInfo:(nonnull NSString *)mac){
 							@"function_right_or_left_limb_machine":@0,
 							@"function_operating_state":@0,
 						};
-						[BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+						[BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
 						
 						
 					}
@@ -508,7 +520,7 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString *)mac){
 RCT_EXPORT_METHOD(getHardwareVersion:(nonnull NSString *)mac){
     
     if ([self getDeviceWithMac:mac]!=nil) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
        
         BP5S*device=[self getDeviceWithMac:mac];
             NSDictionary* response = @{
@@ -517,7 +529,7 @@ RCT_EXPORT_METHOD(getHardwareVersion:(nonnull NSString *)mac){
 								kTYPE_KEY:kTYPE_BP5S,
                 kMAC:mac
             };
-            [BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
             
        
     }else{
@@ -528,5 +540,6 @@ RCT_EXPORT_METHOD(getHardwareVersion:(nonnull NSString *)mac){
     
     
 }
+
 
 @end

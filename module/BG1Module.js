@@ -1,40 +1,16 @@
 'use strict';
+var { TurboModuleRegistry } = require('react-native');
+var RCTModule = TurboModuleRegistry.get('BG1Module');
+// Pre-call addListener via TurboModule JSI to ensure _listenerCount > 0.
+// Without this, sendEventWithName: silently drops all events in New Architecture.
+if (RCTModule) { RCTModule.addListener('event_notify_bg1'); }
 
-
-var { NativeModules } = require('react-native');
-
-var RCTModule = NativeModules.BG1Module
-
-/**
- * @module BG1Module
- */
 module.exports = {
-  Event_Notify: RCTModule.Event_Notify,
-
-    /**
-   * Send code to bg1 device
-   * @param {string} QRCode the result string of scanning strip bottle(ignore if use GDH strip)
-   * @param {int} stripType 1:GOD      2:GDH
-   * @param {int} measureType 1:Test with Blood    2:Test with control liquid (CTL)
-   */
-	sendCode: function(QRCode, stripType, measureType) {
-    if (RCTModule != null) {
-      RCTModule.sendCode(QRCode, stripType, measureType);
-    }else {
-      console.log('~~~~~ RCTModule is null')
-    }
-	},
-
-  /**
-   * Parse bottle info from QRCode, include strip expire time,strip number,bottle id
-   * @param {string} QRCode
-   */
-  getBottleInfoFromQR: function(QRCode){
-    if (RCTModule != null) {
-      RCTModule.getBottleInfoFromQR(QRCode);
-    }else {
-      console.log('~~~~~ RCTModule is null')
-    }
-  }
-
-}
+  Event_Notify: 'event_notify_bg1',
+  getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
+  getBattery: (mac) => { RCTModule?.getBattery(mac); },
+  startMeasure: (mac) => { RCTModule?.startMeasure(mac); },
+  stopMeasure: (mac) => { RCTModule?.stopMeasure(mac); },
+  getHistoryData: (mac) => { RCTModule?.getHistoryData(mac); },
+  disconnect: (mac) => { RCTModule?.disconnect(mac); },
+};

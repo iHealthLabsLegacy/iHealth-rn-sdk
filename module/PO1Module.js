@@ -1,38 +1,15 @@
 'use strict';
+var { TurboModuleRegistry } = require('react-native');
+var RCTModule = TurboModuleRegistry.get('PO1Module');
+// Pre-call addListener via TurboModule JSI to ensure _listenerCount > 0.
+// Without this, sendEventWithName: silently drops all events in New Architecture.
+if (RCTModule) { RCTModule.addListener('event_notify_po1'); }
 
-var {NativeModules} = require('react-native');
-
-var RCTModule = NativeModules.PO1Module
-
-/**
- * @module PO1Module
- */
 module.exports = {
-
-  Event_Notify: RCTModule.Event_Notify,
-
-  /**
-   * Get the PO1 battery status.
-   * @param {string} mac Device's mac address
-   */
-  getBattery: function (mac) {
-      RCTModule.getBattery(mac)
-  },
-
-  /**
-   * Disconnect the PO1
-   * @param mac The mac address
-   */
-  disconnect: function (mac) {
-      RCTModule.disconnect(mac)
-  },
-
-  /**
-   * Get all connected PO1 device
-   *
-   * e.g. {"devices":["A4D5783FB00C","A4D5783FFE58"]}
-   */
-  getAllConnectedDevices: function () {
-      RCTModule.getAllConnectedDevices()
-  }
-}
+  Event_Notify: 'event_notify_po1',
+  getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
+  getBattery: (mac) => { RCTModule?.getBattery(mac); },
+  startMeasure: (mac) => { RCTModule?.startMeasure(mac); },
+  stopMeasure: (mac) => { RCTModule?.stopMeasure(mac); },
+  disconnect: (mac) => { RCTModule?.disconnect(mac); },
+};

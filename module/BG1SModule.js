@@ -1,48 +1,14 @@
 'use strict';
+var { TurboModuleRegistry } = require('react-native');
+var RCTModule = TurboModuleRegistry.get('BG1SModule');
+// Pre-call addListener via TurboModule JSI to ensure _listenerCount > 0.
+// Without this, sendEventWithName: silently drops all events in New Architecture.
+if (RCTModule) { RCTModule.addListener('event_notify_bg1s'); }
 
-var {NativeModules} = require('react-native');
-
-var RCTModule = NativeModules.BG1SModule
-
- /**
-  * @module BG1SModule
-  */
 module.exports = {
-
-  Event_Notify: RCTModule.Event_Notify,
-
-  /**
-   * listen getFunction
-   * @param {string} mac Device's mac address
-   */
-  getFunction: function (mac) {
-    RCTModule.getFunction(mac)
-  },
-
-
-  /**
-   * listen measurement
-   * @param {string} mac Device's mac address
-   */
-  measure: function (mac, measureMode) {
-    RCTModule.measure(mac, measureMode)
-  },
-
-  /**
-   * Disconnect the BG1S
-   * @param mac The mac address for BG1S
-   */
-  disconnect: function (mac) {
-    RCTModule.disconnect(mac)
-  },
-
-  /**
-   * Get all connected BG1S device
-   *
-   * e.g. {"devices":["A4D5783FB00C","A4D5783FFE58"]}
-   */
-  getAllConnectedDevices: function () {
-    RCTModule.getAllConnectedDevices()
-  }
-}
-
+  Event_Notify: 'event_notify_bg1s',
+  getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
+  getFunction: (mac) => { RCTModule?.getFunction(mac); },
+  measure: (mac, testType) => { RCTModule?.measure(mac, testType); },
+  disconnect: (mac) => { RCTModule?.disconnect(mac); },
+};

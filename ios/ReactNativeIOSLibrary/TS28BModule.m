@@ -24,8 +24,20 @@
 @implementation TS28BModule
 
 
-@synthesize bridge = _bridge;
+
+- (instancetype)init
+{
+  // initWithDisabledObservation sets _observationDisabled = YES so that
+  // sendEventWithName:body: always dispatches regardless of _listenerCount.
+  // This is required for React Native New Architecture (TurboModule) compatibility.
+  return [super initWithDisabledObservation];
+}
+
 RCT_EXPORT_MODULE()
+
+- (NSArray<NSString *> *)supportedEvents {
+    return @[EVENT_NOTIFY];
+}
 
 - (NSDictionary *)constantsToExport
 {
@@ -56,7 +68,7 @@ RCT_EXPORT_METHOD(measure:(nonnull NSString *)mac){
 //
 //             NSDictionary* deviceInfo = @{kACTION_KEY:@"ACTION_GET_MEASURE",@"bodyFlag":[result objectForKey:@"bodyFlag"],@"unit":[result objectForKey:@"unit"],@"result":[result objectForKey:@"result"]};
 //
-//                [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+//                [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
 //
 //
 //
@@ -102,8 +114,9 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString *)mac){
     
      NSDictionary* deviceInfo = @{kACTION_KEY:@"ACTION_GET_MEASURE",@"bodyFlag":[NSNumber numberWithInt:type],@"unit":[NSNumber numberWithInt:unit],@"result":[NSNumber numberWithFloat:value]};
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
 }
+
 
 
 @end

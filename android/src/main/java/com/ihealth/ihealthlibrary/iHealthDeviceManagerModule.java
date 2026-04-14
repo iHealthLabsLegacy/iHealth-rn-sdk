@@ -36,8 +36,10 @@ import javax.annotation.Nullable;
 /**
  * Created by jing on 16/10/20.
  */
-@ReactModule(name = "iHealthDeviceManagerModule")
+@ReactModule(name = iHealthDeviceManagerModule.MODULE_NAME)
 public class iHealthDeviceManagerModule extends iHealthBaseModule implements LifecycleEventListener {
+    public static final String MODULE_NAME = "iHealthDeviceManagerModule";
+
 
     private static final String modelName = "iHealthDeviceManagerModule";
     private static final String TAG = "iHealthModel";
@@ -335,7 +337,7 @@ public class iHealthDeviceManagerModule extends iHealthBaseModule implements Lif
 
     @Override
     public String getName() {
-        return modelName;
+        return MODULE_NAME;
     }
 
 
@@ -743,4 +745,10 @@ public class iHealthDeviceManagerModule extends iHealthBaseModule implements Lif
         callback.invoke(isSupportOTG);
     }
 
+
+    @ReactMethod
+    public void addListener(String eventName) {}
+
+    @ReactMethod
+    public void removeListeners(double count) {}
 }

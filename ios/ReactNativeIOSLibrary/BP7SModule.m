@@ -17,8 +17,20 @@
 #define EVENT_NOTIFY @"BP7S.MODULE.NOTIFY"
 
 @implementation BP7SModule
-@synthesize bridge = _bridge;
+
+- (instancetype)init
+{
+  // initWithDisabledObservation sets _observationDisabled = YES so that
+  // sendEventWithName:body: always dispatches regardless of _listenerCount.
+  // This is required for React Native New Architecture (TurboModule) compatibility.
+  return [super initWithDisabledObservation];
+}
+
 RCT_EXPORT_MODULE()
+
+- (NSArray<NSString *> *)supportedEvents {
+    return @[EVENT_NOTIFY];
+}
 
 - (NSDictionary *)constantsToExport
 {
@@ -65,7 +77,7 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
     
     NSDictionary* deviceInfo = @{@"action":@"ACTION_GET_ALL_CONNECTED_DEVICES",@"devices":deviceMacArray};
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
     
     
 }
@@ -92,7 +104,7 @@ RCT_EXPORT_METHOD(getFunctionInfo:(nonnull NSString *)mac){
                                        kFUNCTION_HAVE_SELF_UPDATE:dic[@"selfUpdate"],
                                        kFUNCTION_HAVE_HSD:dic[@"haveHSD"]
                                        };
-            [BPProfileModule sendEventToBridge:self.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:self eventNotify:EVENT_NOTIFY WithDict:response];
         } errorBlock:^(BPDeviceError error) {
             [BPProfileModule sendErrorToBridge:self.bridge eventNotify:EVENT_NOTIFY WithCode:error];
         }];
@@ -114,7 +126,7 @@ RCT_EXPORT_METHOD(getOffLineNum:(nonnull NSString *)mac){
                                        kACTION:kACTION_HISTORICAL_NUM_BP,
                                        kHISTORICAL_NUM_BP:count,
                                        };
-            [BPProfileModule sendEventToBridge:self.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:self eventNotify:EVENT_NOTIFY WithDict:response];
         } errorBlock:^(BPDeviceError error) {
             [BPProfileModule sendErrorToBridge:self.bridge eventNotify:EVENT_NOTIFY WithCode:error];
         }];
@@ -135,7 +147,7 @@ RCT_EXPORT_METHOD(getOffLineData:(nonnull NSString *)mac){
                 NSDictionary* response = @{
                                            kACTION:kACTION_HISTORICAL_DATA_BP,
                                            };
-                [BPProfileModule sendEventToBridge:self.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+                [BPProfileModule sendEventToEmitter:self eventNotify:EVENT_NOTIFY WithDict:response];
             }
         } progress:^(NSNumber *progress) {
             NSLog(@"pregress %@",progress);
@@ -170,7 +182,7 @@ RCT_EXPORT_METHOD(getOffLineData:(nonnull NSString *)mac){
                                            kACTION:kACTION_HISTORICAL_DATA_BP,
                                            kHISTORICAL_DATA_BP:[historyDataArray copy]
                                            };
-                [BPProfileModule sendEventToBridge:self.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+                [BPProfileModule sendEventToEmitter:self eventNotify:EVENT_NOTIFY WithDict:response];
             }
         } errorBlock:^(BPDeviceError error) {
             NSLog(@"error %d",error);
@@ -194,7 +206,7 @@ RCT_EXPORT_METHOD(getBattery:(nonnull NSString *)mac){
                                        kACTION:kACTION_BATTERY_BP,
                                        kBATTERY_BP:energyValue,
                                        };
-            [BPProfileModule sendEventToBridge:self.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:self eventNotify:EVENT_NOTIFY WithDict:response];
         } errorBlock:^(BPDeviceError error) {
             NSLog(@"error %d",error);
             [BPProfileModule sendErrorToBridge:self.bridge eventNotify:EVENT_NOTIFY WithCode:error];
@@ -220,7 +232,7 @@ RCT_EXPORT_METHOD(setUnit:(nonnull NSString *)mac unit:(nonnull NSNumber*)unit){
             NSDictionary* response = @{
                                        kACTION:kACTION_SET_UNIT_SUCCESS_BP,
                                        };
-            [BPProfileModule sendEventToBridge:self.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:self eventNotify:EVENT_NOTIFY WithDict:response];
         } errorBlock:^(BPDeviceError error) {
             NSLog(@"error %d",error);
             [BPProfileModule sendErrorToBridge:self.bridge eventNotify:EVENT_NOTIFY WithCode:error];
@@ -247,7 +259,7 @@ RCT_EXPORT_METHOD(angleSet:(nonnull NSString *)mac hl:(nonnull NSNumber*)hl ll:(
             NSDictionary* response = @{
                                        kACTION:kACTION_SET_ANGLE_SUCCESS_BP,
                                        };
-            [BPProfileModule sendEventToBridge:self.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:self eventNotify:EVENT_NOTIFY WithDict:response];
         } errorBlock:^(BPDeviceError error) {
             NSLog(@"error %d",error);
             [BPProfileModule sendErrorToBridge:self.bridge eventNotify:EVENT_NOTIFY WithCode:error];
@@ -271,6 +283,7 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString *)mac){
     
     
 }
+
 
 
 

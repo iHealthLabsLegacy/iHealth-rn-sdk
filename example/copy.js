@@ -6,8 +6,10 @@ const filenames = ['android/src',
                   'android/proguard-rules.pro',
                   'ios',
                   'module',
+                  'src',
                   'index.js',
-                  'package.json'];
+                  'package.json',
+                  'ReactNativeIOSLibrary.podspec'];
 
 let srcPath  = '';
 const destPath = 'node_modules/@ihealth/ihealthlibrary-react-native/';
@@ -26,10 +28,15 @@ async function task(filename) {
   }
 }
 
-fs.readFile('.path', 'utf8', function(err, data) {
-    srcPath = data.split('=')[1];
-    filenames.forEach((filename) => {
-        task(filename);
-    })
-})
+async function runAll() {
+    const data = await fs.readFile('.path', 'utf8');
+    srcPath = data.split('=')[1].trim();
+    // Run sequentially to avoid race conditions when removing+copying directories
+    for (const filename of filenames) {
+        await task(filename);
+    }
+    console.log('✅ All files synced.');
+}
+
+runAll().catch(console.error);
 

@@ -17,8 +17,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@ReactModule(name = "BP7Module")
+@ReactModule(name = BP7Module.MODULE_NAME)
 public class BP7Module extends iHealthBaseModule {
+    public static final String MODULE_NAME = "BP7Module";
+
 
     private static final String moduleName = BP7Module.class.getSimpleName();
     private static final String TAG = BP7Module.class.getSimpleName();
@@ -31,7 +33,7 @@ public class BP7Module extends iHealthBaseModule {
 
     @Override
     public String getName() {
-        return moduleName;
+        return MODULE_NAME;
     }
 
     @Override
@@ -145,4 +147,10 @@ public class BP7Module extends iHealthBaseModule {
         sendEvent(EVENT_NOTIFY, params);
     }
 
+
+    @ReactMethod
+    public void addListener(String eventName) {}
+
+    @ReactMethod
+    public void removeListeners(double count) {}
 }

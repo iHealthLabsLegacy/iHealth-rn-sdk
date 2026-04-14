@@ -23,8 +23,10 @@ import java.util.Map;
 /**
  * Created by jing on 16/10/24.
  */
-@ReactModule(name = "BP5Module")
+@ReactModule(name = BP5Module.MODULE_NAME)
 public class BP5Module extends iHealthBaseModule {
+    public static final String MODULE_NAME = "BP5Module";
+
 
     private static final String modelName = "BP5Module";
     private static final String TAG = "BP5Module";
@@ -37,7 +39,7 @@ public class BP5Module extends iHealthBaseModule {
 
     @Override
     public String getName() {
-        return modelName;
+        return MODULE_NAME;
     }
 
     @Override
@@ -190,4 +192,10 @@ public class BP5Module extends iHealthBaseModule {
         }
         sendEvent(EVENT_NOTIFY, params);
     }
+
+    @ReactMethod
+    public void addListener(String eventName) {}
+
+    @ReactMethod
+    public void removeListeners(double count) {}
 }

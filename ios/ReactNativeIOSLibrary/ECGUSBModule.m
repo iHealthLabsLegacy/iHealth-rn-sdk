@@ -14,11 +14,20 @@
 
 @implementation ECGUSBModule
 
-@synthesize bridge = _bridge;
 
+- (instancetype)init
+{
+  // initWithDisabledObservation sets _observationDisabled = YES so that
+  // sendEventWithName:body: always dispatches regardless of _listenerCount.
+  // This is required for React Native New Architecture (TurboModule) compatibility.
+  return [super initWithDisabledObservation];
+}
 
 RCT_EXPORT_MODULE()
 
+- (NSArray<NSString *> *)supportedEvents {
+    return @[EVENT_NOTIFY];
+}
 
 #pragma mark
 #pragma mark - constantsToExport
@@ -41,7 +50,7 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
     if (ecg!=nil) {
         
         NSDictionary* deviceInfo = @{kACTION:kACTION_GET_ALL_CONNECTED_DEVICES,kDEVICES:ecg.serialNumber};
-        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+        [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
     }
    
     
@@ -55,7 +64,7 @@ RCT_EXPORT_METHOD(getIdps){
     
     [deviceInfo setValue:@"This method iOS is not supported" forKey:kERROR_DESCRIPTION_ECGUSB];
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
 }
 /**
  Sync Data
@@ -77,21 +86,21 @@ RCT_EXPORT_METHOD(syncData){
     
     ECG3USB *device = [[ECG3USBController shareECG3USBController] getCurrentECG3USBInstace];
     if (device) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         [device syncDataWithStartBlock:^{
             
             NSDictionary* deviceInfo = @{kACTION:kACTION_STARTSYNCDATA_ECGUSB,kMAC:device.serialNumber,kType:@"ECG3USB"};
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } progressBlock:^(NSUInteger progress) {
             
             NSDictionary* deviceInfo = @{kACTION:kACTION_SYNCDATAPROGRESS_ECGUSB,kPROGRESS:@(progress),kMAC:device.serialNumber,kType:@"ECG3USB"};
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } resultBlock:^(NSArray *resultArray, BOOL finish) {
             
             NSDictionary* deviceInfo = @{kACTION:kACTION_SYNCDATAINFO_ECGUSB,kDATAINFO:resultArray,kMAC:device.serialNumber,kType:@"ECG3USB"};
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } errorBlock:^(ECG3USBError errorID) {
             
@@ -161,7 +170,7 @@ RCT_EXPORT_METHOD(syncData){
     
     [deviceInfo setValue:errorDes forKey:kERROR_DESCRIPTION_ECGUSB];
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
 }
 
 /**
@@ -176,10 +185,10 @@ RCT_EXPORT_METHOD(deleteData){
     
     ECG3USB *device = [[ECG3USBController shareECG3USBController] getCurrentECG3USBInstace];
     if (device) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         [device formatSDCard:^{
             NSDictionary* deviceInfo = @{kACTION:kACTION_DELETEDATA_ECGUSB,kType:@"ECG3USB",kMAC:device.serialNumber};
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         } progressBlock:^(NSUInteger progress) {
             
         } errorBlock:^(ECG3USBError error) {
@@ -199,23 +208,23 @@ RCT_EXPORT_METHOD(deleteData){
  @param error a block contains error message
  */
 RCT_EXPORT_METHOD(spliceData:(nonnull NSArray*)array){
-    __weak typeof(self) weakSelf = self;
+    __weak __typeof__(self) weakSelf = self;
     [ECG3USB spliceWithFileNames:array successBlock:^(NSDictionary *dic) {
         NSDictionary* deviceInfo = @{kACTION:kACTION_SPLICE,kSPLICE_DATA:dic,kType:@"ECG3USB",kMAC:@""};
-        [weakSelf.bridge.eventDispatcher sendAppEventWithName:EVENT_NOTIFY body:deviceInfo];
+        [weakSelf sendEventWithName:EVENT_NOTIFY body:deviceInfo];
     } errorBlock:^(ECG3USBError error, NSString *message) {
         NSDictionary* deviceInfo = @{kACTION:kACTION_SPLICE,kSPLICE_ERROR_DESCRIPTION:message,kType:@"ECG3USB",kMAC:@""};
-        [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+        [weakSelf sendEventWithName:EVENT_NOTIFY body:deviceInfo];
     }];
 }
 
 RCT_EXPORT_METHOD(getCache){
     ECG3USB *device = [[ECG3USBController shareECG3USBController] getCurrentECG3USBInstace];
     if (device) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         [device getCacheDataWithBlock:^(NSArray *array) {
             NSDictionary* deviceInfo = @{kACTION:kACTION_GET_CACHE,kGET_CACHE_DATA:array,kMAC:device.serialNumber,kType:@"ECG3USB"};
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         }];
     }else{
         [self commandReturnECGUSBError:ECG3USBError_DeviceDisconnect MAC:@""];
@@ -228,15 +237,15 @@ RCT_EXPORT_METHOD(getFilterDataByFileName:(nonnull NSString*)dataFileName markNa
         if (!dataFileName || !markFileName){
             NSString *message = @"input parameter cannot be null";
             NSDictionary* deviceInfo = @{kACTION:kACTION_SPLICE,kFILTER_ERROR_DESCRIPTION:message,kType:@"ECG3USB",kMAC:device.serialNumber};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         } else {
-            __weak typeof(self) weakSelf = self;
+            __weak __typeof__(self) weakSelf = self;
             [device getFilterDataWithDic:@{@"MarkFileName":markFileName,@"DataFileName":dataFileName} success:^(NSArray *resultArray, BOOL finish) {
                 NSDictionary* deviceInfo = @{kACTION:kACTION_FILTER,kFILTER_DATA:resultArray,kMAC:device.serialNumber,kType:@"ECG3USB"};
-                [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+                [weakSelf sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             } error:^(NSString *message) {
                 NSDictionary* deviceInfo = @{kACTION:kACTION_SPLICE,kFILTER_ERROR_DESCRIPTION:message,kType:@"ECG3USB",kMAC:device.serialNumber};
-                [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+                [weakSelf sendEventWithName:EVENT_NOTIFY body:deviceInfo];
                 
             }];
         }
@@ -247,5 +256,6 @@ RCT_EXPORT_METHOD(getFilterDataByFileName:(nonnull NSString*)dataFileName markNa
         [self commandReturnECGUSBError:ECG3USBError_DeviceDisconnect MAC:@""];
     }
 }
+
 
 @end

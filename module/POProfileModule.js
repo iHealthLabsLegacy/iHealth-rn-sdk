@@ -6,7 +6,7 @@
 
 var {NativeModules} = require('react-native');
 
-var RCTModule = NativeModules.POProfileModule
+var RCTModule = NativeModules.POProfileModule || {}
 
 /**
  * @module POProfileModule

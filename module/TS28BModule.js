@@ -1,39 +1,15 @@
 'use strict';
+var { TurboModuleRegistry } = require('react-native');
+var RCTModule = TurboModuleRegistry.get('TS28BModule');
+// Pre-call addListener via TurboModule JSI to ensure _listenerCount > 0.
+// Without this, sendEventWithName: silently drops all events in New Architecture.
+if (RCTModule) { RCTModule.addListener('event_notify_ts28b'); }
 
-var {NativeModules} = require('react-native');
-
-var RCTModule = NativeModules.TS28BModule
-
- /**
-  * @module TS28BModule
-  */
 module.exports = {
-
-  Event_Notify: RCTModule.Event_Notify,
-
-  /**
-   * listen measurement
-   * @param {string} mac Device's mac address
-   */
-  measure: function (mac) {
-    RCTModule.measure(mac)
-  },
-
-  /**
-   * Disconnect the nt13b
-   * @param mac The mac address for BTM
-   */
-  disconnect: function (mac) {
-    RCTModule.disconnect(mac)
-  },
-
-  /**
-   * Get all connected BTM device
-   *
-   * e.g. {"devices":["A4D5783FB00C","A4D5783FFE58"]}
-   */
-  getAllConnectedDevices: function () {
-    RCTModule.getAllConnectedDevices()
-  }
-}
-
+  Event_Notify: 'event_notify_ts28b',
+  getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
+  getBattery: (mac) => { RCTModule?.getBattery(mac); },
+  startMeasure: (mac) => { RCTModule?.startMeasure(mac); },
+  stopMeasure: (mac) => { RCTModule?.stopMeasure(mac); },
+  disconnect: (mac) => { RCTModule?.disconnect(mac); },
+};

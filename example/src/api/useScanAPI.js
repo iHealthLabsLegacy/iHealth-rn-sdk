@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { DeviceEventEmitter } from 'react-native';
+import { NativeEventEmitter, NativeModules } from 'react-native';
 import { iHealthDeviceManagerModule } from '@ihealth/ihealthlibrary-react-native';
 
 const useScanAPI = () => {
@@ -7,33 +7,50 @@ const useScanAPI = () => {
     const [isScanning, setScanning] = useState(false);
 
     const scanDevice = (type) => {
-        console.log("scan device: " + type)
+        console.log("scan device: " + type);
         setScanning(true);
-        iHealthDeviceManagerModule.startDiscovery(type)
-    }
+        iHealthDeviceManagerModule.startDiscovery(type);
+    };
 
     useEffect(() => {
-        const scanListener = DeviceEventEmitter.addListener(iHealthDeviceManagerModule.Event_Scan_Device, (event) => {
-            console.log(event);
-            SetOnScanState(event);
-        });
+        // Create NativeEventEmitter inside useEffect so native modules
+        // are fully initialized before we subscribe.
+        const nativeModule = NativeModules.iHealthDeviceManagerModule;
+        console.log('[useScanAPI] nativeModule:', nativeModule ? 'found' : 'null',
+            'addListener:', typeof nativeModule?.addListener,
+            'removeListeners:', typeof nativeModule?.removeListeners);
 
-        const scanFinishListener = DeviceEventEmitter.addListener(iHealthDeviceManagerModule.Event_Scan_Finish, () => {
-            setScanning(false);
-        });
-    
+        const emitter = nativeModule
+            ? new NativeEventEmitter(nativeModule)
+            : null;
+
+        if (!emitter) {
+            console.warn('[useScanAPI] Cannot create NativeEventEmitter - module not ready');
+            return;
+        }
+
+        const scanListener = emitter.addListener(
+            iHealthDeviceManagerModule.Event_Scan_Device,
+            (event) => {
+                console.log('[useScanAPI] scan event:', event);
+                SetOnScanState(event);
+            }
+        );
+
+        const scanFinishListener = emitter.addListener(
+            iHealthDeviceManagerModule.Event_Scan_Finish,
+            () => {
+                setScanning(false);
+            }
+        );
+
         return () => {
             scanListener.remove();
             scanFinishListener.remove();
         };
     }, []);
-        
-    return {
-        onScanState,
-        isScanning,
-        scanDevice
-    }
-}
+
+    return { onScanState, isScanning, scanDevice };
+};
 
 export default useScanAPI;
-

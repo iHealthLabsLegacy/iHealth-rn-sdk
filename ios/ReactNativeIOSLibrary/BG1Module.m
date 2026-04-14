@@ -15,9 +15,11 @@
 
 @implementation BG1Module
 
-@synthesize bridge = _bridge;
-
 RCT_EXPORT_MODULE()
+
+- (NSArray<NSString *> *)supportedEvents {
+    return @[@"event_notify_bg1"];
+}
 
 - (NSDictionary *)constantsToExport
 {
@@ -35,7 +37,7 @@ RCT_EXPORT_MODULE()
 #pragma mark - Init
 -(id)init
 {
-    if (self=[super init])
+    if (self=[super initWithDisabledObservation])
     {
         
         [BG1Controller shareBG1Controller];
@@ -73,7 +75,7 @@ RCT_EXPORT_METHOD(sendCode:(nonnull NSString *)QR:(nonnull NSNumber *)codeType:(
         
         if (QR ==nil || QR.length<30) {
             NSDictionary* deviceInfo = @{@"mac":@"",@"action":@"action_measure_error_for_bg1",@"action_measure_error_for_bg1":@400,@"description":@"Parameter input error."};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
             return;
         }
@@ -97,17 +99,17 @@ RCT_EXPORT_METHOD(sendCode:(nonnull NSString *)QR:(nonnull NSNumber *)codeType:(
         [[self getBG1Instance] commandBG1MeasureMode:bgMeasureModel withCodeMode:bgCodeModel withCodeString:QR withSendCodeResultBlock:^{
             
             NSDictionary* deviceInfo = @{@"mac":@"",@"action":@"action_sendcode_result_for_bg1",@"set_bottle_message":@true};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withStripInBlock:^{
             
             NSDictionary* deviceInfo = @{@"mac":@"",@"action":@"action_measure_strip_in_for_bg1"};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withBloodBlock:^{
             
             NSDictionary* deviceInfo = @{@"mac":@"",@"action":@"action_measure_get_blood_for_bg1"};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withResultBlock:^(NSDictionary *result) {
             
@@ -121,12 +123,12 @@ RCT_EXPORT_METHOD(sendCode:(nonnull NSString *)QR:(nonnull NSNumber *)codeType:(
             NSDictionary *resultDic = [NSDictionary dictionaryWithObjectsAndKeys:dateStr,@"date",[result objectForKey:@"Result"],@"value",[result objectForKey:@"dataID"],@"dataID", nil];
             
             NSDictionary* deviceInfo = @{@"mac":@"",@"action":@"action_measure_result_for_bg1",@"result":resultDic};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withStripOutBlock:^{
             
             NSDictionary* deviceInfo = @{@"mac":@"",@"action":@"action_measure_strip_out_for_bg1"};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withErrorBlock:^(BG1Error errorID) {
             
@@ -174,7 +176,7 @@ RCT_EXPORT_METHOD(sendCode:(nonnull NSString *)QR:(nonnull NSNumber *)codeType:(
             }
             
             NSDictionary* deviceInfo = @{@"mac":@"",@"action":@"action_measure_error_for_bg1",@"action_measure_error_for_bg1":[NSNumber numberWithInt:errorID],@"description":descriptionStr};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         }];
         
@@ -185,7 +187,7 @@ RCT_EXPORT_METHOD(sendCode:(nonnull NSString *)QR:(nonnull NSNumber *)codeType:(
     }else{
         
         NSDictionary* deviceInfo = @{@"mac":@"",@"action":@"action_measure_error_for_bg1",@"action_measure_error_for_bg1":@100,@"description":@"BG disConnented." };
-        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+        [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         
     }
     
@@ -214,16 +216,17 @@ RCT_EXPORT_METHOD(getBottleInfoFromQR:(nonnull NSString *)QR){
         NSNumber *remainNum = [codeDic objectForKey:@"StripNum"];
         
         NSDictionary* deviceInfo = @{@"mac":@"",@"action":@"action_code_analysis_bg",@"stripNum":remainNum,@"overDate":dateStr,@"bottleId":bottleID};
-        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+        [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         
     }else{
         
         NSDictionary* deviceInfo = @{@"mac":@"",@"action":@"action_measure_error_for_bg1",@"action_measure_error_for_bg1":@100,@"description":@"BG disConnented."};
-        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+        [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         
     }
     
 }
+
 
 
 @end
