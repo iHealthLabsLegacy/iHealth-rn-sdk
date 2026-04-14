@@ -7,7 +7,7 @@
     "index.js",
     "module/",
     "src/",
-    "ios/",
+    "ios/ReactNativeIOSLibrary/",
     "android/src/main/",
     "android/libs/",
     "android/build.gradle",
@@ -34,14 +34,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://iHealthLabs@github.com/iHealthLab/ReactNativeLibrary.git"
+    "url": "git+https://github.com/iHealthLab/iHealth-rn-sdk.git"
   },
   "author": "iHealthLabs",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/iHealthDeviceLabs/iHealthLibrary_ReactNative/issues"
+    "url": "https://github.com/iHealthLab/iHealth-rn-sdk/issues"
   },
-  "homepage": "https://github.com/iHealthDeviceLabs/iHealthLibrary_ReactNative#readme",
+  "homepage": "https://github.com/iHealthLab/iHealth-rn-sdk#readme",
   "peerDependencies": {
     "react-native": ">=0.76.0"
   },

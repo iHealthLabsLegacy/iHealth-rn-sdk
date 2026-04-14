@@ -33,3 +33,11 @@ yarn.lock
 .vscode/
 .idea/
 *.log
+ios/**/xcuserdata/
+ios/**/xcuserdata/**
+ios/**/*.xcuserstate
+ios/**/*.xcodeproj/xcuserdata/
+ios/**/*.xcodeproj/xcuserdata/**
+ios/**/*.xcodeproj/project.xcworkspace/xcuserdata/
+ios/**/*.xcodeproj/project.xcworkspace/xcuserdata/**
+ios/**/.DS_Store
