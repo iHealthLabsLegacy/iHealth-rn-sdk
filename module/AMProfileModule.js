@@ -6,7 +6,7 @@
 
 var {NativeModules} = require('react-native');
 
-var RCTModule = NativeModules.AMProfileModule
+var RCTModule = NativeModules.AMProfileModule || {}
 
 /**
  * @module AMProfileModule

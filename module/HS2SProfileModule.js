@@ -2,7 +2,7 @@
 
 var {NativeModules} = require('react-native');
 
-var RCTModule = NativeModules.HS2SProfileModule
+var RCTModule = NativeModules.HS2SProfileModule || {}
 
 /**
  * @module HS2SProfileModule

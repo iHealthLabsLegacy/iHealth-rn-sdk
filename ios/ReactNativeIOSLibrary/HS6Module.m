@@ -25,9 +25,16 @@
     
 }
 
-@synthesize bridge = _bridge;
+- (instancetype)init
+{
+  return [super initWithDisabledObservation];
+}
 
 RCT_EXPORT_MODULE()
+
+- (NSArray<NSString *> *)supportedEvents {
+    return @[EVENT_NOTIFY];
+}
 
 #pragma mark-init
 
@@ -45,7 +52,7 @@ RCT_EXPORT_MODULE()
 }
 
 - (void)sendEventWithAction:(NSString*)actionName keyString:(NSString*)key valueString:(id)value{
-    [self.bridge.eventDispatcher sendDeviceEventWithName:@"HS6.MODULE.NOTIFY"  body:@{@"action":actionName,key:value}];
+    [self sendEventWithName:@"HS6.MODULE.NOTIFY" body:@{@"action":actionName,key:value}];
 }
 
 #pragma mark
@@ -101,11 +108,11 @@ RCT_EXPORT_METHOD(setWifi:(nonnull NSString*)ssid :(nonnull NSString*)password){
             
             NSDictionary *deviceInf = @{@"action":ACTION_HS6_SETWIFI,SETWIFI_RESULT:deviceArray};
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInf];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInf];
             NSLog(@"WIFI sucess");
         } disposeHS6FailBlock:^(NSString *failmsg) {
             NSDictionary *deviceInf = @{@"action":ACTION_HS6_SETWIFI,SETWIFI_RESULT:failmsg};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInf];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInf];
             
         } disposeHS6EndBlock:^(NSDictionary *deviceDic) {
             NSLog(@"set WIFI over");
@@ -113,7 +120,7 @@ RCT_EXPORT_METHOD(setWifi:(nonnull NSString*)ssid :(nonnull NSString*)password){
         } disposeHS6ErrorBlock:^(NSNumber *error) {
             NSDictionary *deviceInf = @{@"action":ACTION_HS6_ERROR,HS6_ERROR:[NSNumber numberWithInteger:error]};
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInf];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInf];
         }];
     }
        }
@@ -171,10 +178,10 @@ RCT_EXPORT_METHOD(bindDeviceHS6:(nonnull NSString*)birthday :(nonnull NSNumber*)
             
             NSDictionary *deviceInf = @{@"action":ACTION_HS6_BIND,HS6_BIND_EXTRA:deviceArray};
             NSLog(@"ResultArray%@",resultArray);
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInf];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInf];
         } binedError:^(NSString *errorCode) {
             NSDictionary *deviceInf = @{@"action":ACTION_HS6_ERROR,HS6_ERROR:errorCode};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInf];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInf];
 
         }];
     }
@@ -207,11 +214,11 @@ RCT_EXPORT_METHOD(unBindDeviceHS6:(nonnull NSString*)serialNumber){
             NSDictionary *deviceInf = @{@"action":ACTION_HS6_UNBIND,HS6_UNBIND_RESULT:resultArray};
             
             NSLog(@"unBindDeviceHS6:%@",resultArray);
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInf];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInf];
 
         } disBinedError:^(NSString *errorCode) {
             NSDictionary *deviceInf = @{@"action":ACTION_HS6_ERROR,HS6_ERROR:[NSString stringWithFormat:@"%@", errorCode]};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInf];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInf];
         }];
     }
 }
@@ -230,13 +237,13 @@ RCT_EXPORT_METHOD(getToken:(nonnull NSString*)clientId :(nonnull NSString*)clien
         [hs6Controller commandHS6GetOpenAPITokenWithUser:healthUser withSuccessBlock:^(NSDictionary*openAPIInfoDic) {
             NSDictionary *deviceInf = @{@"action":ACTION_HS6_GET_TOKEN,GET_TOKEN_RESULT:openAPIInfoDic};
             NSLog(@"openAPIInfoDic%@",openAPIInfoDic);
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInf];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInf];
         } withErrorBlock:^(NSDictionary *errorCode) {
             
             if (errorCode!=nil && [errorCode isKindOfClass:[NSDictionary class]]) {
                 NSDictionary *deviceInf = @{@"action":ACTION_HS6_ERROR, HS6_ERROR:[errorCode valueForKey:@"ErrorCode"],HS6_ERROR:[errorCode valueForKey:@"ErrorDescription"]};
                 
-                [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInf];
+                [self sendEventWithName:EVENT_NOTIFY body:deviceInf];
             }
            
         }];
@@ -272,11 +279,11 @@ RCT_EXPORT_METHOD(setUnit:(nonnull NSString*)username :(nonnull NSNumber*)unitTy
         [hs6Controller commandHS6WithUser:healthUser withSyncWeightUnit:unitType.intValue withSuccessBlock:^(BOOL syncWeightUnit) {
             NSDictionary *deviceInf = @{@"action":ACTION_HS6_SET_UNIT,SET_UNIT_RESULT:[NSNumber numberWithBool:syncWeightUnit]};
             NSLog(@"setUnitResult:%d",syncWeightUnit);
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInf];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInf];
             
         } withErrorBlock:^(NSString *errorCode) {
             NSDictionary *deviceInf = @{@"action":ACTION_HS6_ERROR,HS6_ERROR:errorCode};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInf];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInf];
         }];
     }
 
@@ -310,23 +317,24 @@ RCT_EXPORT_METHOD(getCloudData:(nonnull NSString*)clientId :(nonnull NSString*)c
         [hs6Controller commandDownloadHS6Data:healthUser withDownloadTS:[ts longValue] withPageSize:[pageSize longValue] withSuccessBlock:^(NSDictionary *dataDic) {
             
             NSDictionary *deviceInf = @{@"action":ACTION_HS6_GET_CLOUDDATA,HS6_CLOUDDATA:dataDic};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInf];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInf];
             
         } blockHS6LastTSFromCloud:^(NSNumber *lastTS) {
             
             NSDictionary *deviceInf = @{@"action":ACTION_HS6_GET_CLOUDDATA_LASTTS,HS6_CLOUDDATA_LASTTS:lastTS};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInf];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInf];
             
             
         } withErrorBlock:^(NSNumber *error) {
             
             NSDictionary *deviceInf = @{@"action":ACTION_HS6_ERROR,HS6_ERROR:error};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInf];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInf];
             
         }];
         
         
     }
 }
+
 
 @end

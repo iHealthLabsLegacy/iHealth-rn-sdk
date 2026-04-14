@@ -26,8 +26,10 @@ import static com.ihealth.communication.control.Bg5Profile.ACTION_HISTORICAL_DAT
  * @author chenxuewei
  * @date   04/19/2019
  */
-@ReactModule(name = "BG5SModule")
+@ReactModule(name = BG5SModule.MODULE_NAME)
 public class BG5SModule extends iHealthBaseModule {
+    public static final String MODULE_NAME = "BG5SModule";
+
 
     private static final String TAG = BG5SModule.class.getName();
 
@@ -40,7 +42,7 @@ public class BG5SModule extends iHealthBaseModule {
 
     @Override
     public String getName() {
-        return ModelName;
+        return MODULE_NAME;
     }
 
     @Override
@@ -182,4 +184,10 @@ public class BG5SModule extends iHealthBaseModule {
         }
         sendEvent(EVENT_NOTIFY, params);
     }
+
+    @ReactMethod
+    public void addListener(String eventName) {}
+
+    @ReactMethod
+    public void removeListeners(double count) {}
 }

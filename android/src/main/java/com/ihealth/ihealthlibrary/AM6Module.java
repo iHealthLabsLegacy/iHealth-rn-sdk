@@ -26,8 +26,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-@ReactModule(name = "AM6Module")
+@ReactModule(name = AM6Module.MODULE_NAME)
 public class AM6Module extends iHealthBaseModule {
+    public static final String MODULE_NAME = "AM6Module";
+
     
     private static final String modelName = "AM6Module";
     private static final String TAG = AM6Module.modelName;
@@ -39,7 +41,7 @@ public class AM6Module extends iHealthBaseModule {
 
     @Override
     public String getName() {
-        return modelName;
+        return MODULE_NAME;
     }
 
     @Override
@@ -801,4 +803,10 @@ public class AM6Module extends iHealthBaseModule {
             Log.e(TAG, "Can not find AM6 Control mac:" + mac);
         }
     }
+
+    @ReactMethod
+    public void addListener(String eventName) {}
+
+    @ReactMethod
+    public void removeListeners(double count) {}
 }

@@ -11,8 +11,20 @@
 #import "NT13BProfileModule.h"
 
 @implementation NT13BModule
-@synthesize bridge = _bridge;
+
+- (instancetype)init
+{
+  // initWithDisabledObservation sets _observationDisabled = YES so that
+  // sendEventWithName:body: always dispatches regardless of _listenerCount.
+  // This is required for React Native New Architecture (TurboModule) compatibility.
+  return [super initWithDisabledObservation];
+}
+
 RCT_EXPORT_MODULE()
+
+- (NSArray<NSString *> *)supportedEvents {
+    return @[NT13B_EVENT_NOTIFY];
+}
 
 - (NSDictionary *)constantsToExport
 {
@@ -58,7 +70,7 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
     
     NSDictionary* deviceInfo = @{NT13B_ACTION:kACTION_GET_ALL_CONNECTED_DEVICES,NT13B_DEVICE:deviceMacArray};
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:NT13B_EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:NT13B_EVENT_NOTIFY body:deviceInfo];
 }
 
 RCT_EXPORT_METHOD(measure:(nonnull NSString *)mac){
@@ -70,7 +82,7 @@ RCT_EXPORT_METHOD(measure:(nonnull NSString *)mac){
              
              NSDictionary* deviceInfo = @{NT13B_ACTION:@"action_measurement_result",NT13B_THERMOMETER_TYPE:[result objectForKey:@"bodyFlag"],NT13B_UNIT_FLAG:[result objectForKey:@"unit"],NT13B_RESULT:[result objectForKey:@"result"]};
                 
-                [self.bridge.eventDispatcher sendDeviceEventWithName:NT13B_EVENT_NOTIFY body:deviceInfo];
+                [self sendEventWithName:NT13B_EVENT_NOTIFY body:deviceInfo];
              
              
              
@@ -92,5 +104,6 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString *)mac){
         
     }
 }
+
 
 @end

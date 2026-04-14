@@ -8,6 +8,11 @@
 
 #import "BPProfileModule.h"
 #import "BPMacroFile.h"
+#if __has_include(<React/RCTEventEmitter.h>)
+#import <React/RCTEventEmitter.h>
+#else
+#import <React/RCTEventEmitter.h>
+#endif
 @implementation BPProfileModule
 
 
@@ -214,7 +219,16 @@ RCT_EXPORT_MODULE()
 }
 
 + (void)sendEventToBridge:(RCTBridge *)bridge eventNotify:(NSString*)eventNotify WithDict:(NSDictionary*)dict{
-    [bridge.eventDispatcher sendDeviceEventWithName:eventNotify body:dict];
+    // This method is deprecated in React Native 0.81+
+    // Use sendEventToEmitter instead
+    // Keeping this method for backward compatibility but it won't work in RN 0.81+
+    // In RN 0.81+, modules should use RCTEventEmitter and call sendEventToEmitter
+}
+
++ (void)sendEventToEmitter:(RCTEventEmitter *)emitter eventNotify:(NSString*)eventNotify WithDict:(NSDictionary*)dict{
+    if (emitter && [emitter respondsToSelector:@selector(sendEventWithName:body:)]) {
+        [emitter sendEventWithName:eventNotify body:dict];
+    }
 }
 
 + (void)sendErrorToBridge:(RCTBridge *)bridge eventNotify:(NSString*)eventNotify WithCode:(NSInteger)errorCode mac:(NSString*)mac type:(NSString*)type{

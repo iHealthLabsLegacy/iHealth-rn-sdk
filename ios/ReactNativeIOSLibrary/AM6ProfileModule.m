@@ -6,6 +6,11 @@
 //
 
 #import "AM6ProfileModule.h"
+#if __has_include(<React/RCTEventEmitter.h>)
+#import <React/RCTEventEmitter.h>
+#else
+#import <React/RCTEventEmitter.h>
+#endif
 #import "AMMacroFile.h"
 
 #import <CommonCrypto/CommonHMAC.h>
@@ -266,7 +271,53 @@ RCT_EXPORT_MODULE()
 }
 
 + (void)sendEventToBridge:(RCTBridge *)bridge eventNotify:(NSString*)eventNotify WithDict:(NSDictionary*)dict{
-    [bridge.eventDispatcher sendDeviceEventWithName:eventNotify body:dict];
+    // This method is deprecated in React Native 0.81+
+    // Use sendEventToEmitter instead
+    // Keeping this method for backward compatibility but it won't work in RN 0.81+
+    // In RN 0.81+, modules should use RCTEventEmitter and call sendEventToEmitter
+}
+
++ (void)sendEventToEmitter:(RCTEventEmitter *)emitter eventNotify:(NSString*)eventNotify WithDict:(NSDictionary*)dict{
+    [emitter sendEventWithName:eventNotify body:dict];
+}
+
++ (void)sendErrorToEmitter:(RCTEventEmitter *)emitter eventNotify:(NSString*)eventNotify WithCode:(NSInteger)errorCode mac:(NSString*)mac{
+    NSDictionary*  errorDict;
+    
+    
+    if(errorCode==AM6DeviceError_DeviceDisconnect || errorCode==AM6DeviceConnectError_Disconnect){
+        
+    
+        errorDict = @{
+            AM6_ACTION:ACTION_ERROR_AM6,
+            ERROR_DESCRIPTION_AM6:[self descriptionForErrorCode:errorCode],
+            AM6_TYPE:@"AM6",
+            AM6_KEY_MAC:mac,
+                      };
+    
+    }else{
+        
+        
+       errorDict = @{
+           AM6_ACTION:ACTION_ERROR_AM6,
+           ERROR_NUM_AM6:@(errorCode),
+           ERROR_DESCRIPTION_AM6:[self descriptionForErrorCode:errorCode],
+           AM6_TYPE:@"AM6",
+           AM6_KEY_MAC:mac,
+            };
+
+    
+    }
+    
+    [self sendEventToEmitter:emitter eventNotify:eventNotify WithDict:errorDict];
+}
+
++(void)sendNoDeviceToEmitter:(RCTEventEmitter *)emitter{
+    
+    
+    NSDictionary* deviceInfo = @{AM6_ACTION:ACTION_ERROR_AM6,ERROR_DESCRIPTION_AM6:ACTION_DISCONNECT_AM6};
+    [emitter sendEventWithName:AM6_EVENT_NOTIFY body:deviceInfo];
+    
 }
 
 
@@ -285,11 +336,9 @@ RCT_EXPORT_MODULE()
 }
 
 +(void)sendNoDevice:(RCTBridge *)bridge{
-    
-    
-    NSDictionary* deviceInfo = @{AM6_ACTION:ACTION_ERROR_AM6,ERROR_DESCRIPTION_AM6:ACTION_DISCONNECT_AM6};
-    [bridge.eventDispatcher sendDeviceEventWithName:AM6_EVENT_NOTIFY body:deviceInfo];
-    
+    // This method is deprecated in React Native 0.81+
+    // Use sendNoDeviceToEmitter instead
+    // Keeping this method for backward compatibility but it won't work in RN 0.81+
 }
 
 

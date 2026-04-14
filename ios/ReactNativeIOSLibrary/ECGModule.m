@@ -15,9 +15,11 @@
 
 @implementation ECGModule
 
-@synthesize bridge = _bridge;
-
 RCT_EXPORT_MODULE()
+
+- (NSArray<NSString *> *)supportedEvents {
+    return @[EVENT_NOTIFY];
+}
 
 #pragma mark
 #pragma mark - constantsToExport
@@ -33,7 +35,7 @@ RCT_EXPORT_MODULE()
 #pragma mark
 #pragma mark - Init
 -(id)init{
-    if (self=[super init]){
+    if (self=[super initWithDisabledObservation]){
     }
     return self;
 }
@@ -70,7 +72,7 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
     
     NSDictionary* deviceInfo = @{kACTION:kACTION_GET_ALL_CONNECTED_DEVICES,kDEVICES:deviceMacArray};
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
     
     
 }
@@ -80,11 +82,11 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
 RCT_EXPORT_METHOD(getBattery:(nonnull NSString *)mac){
     
     if ([self getECG3WithMac:mac]!=nil) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         [[self getECG3WithMac:mac] commandECG3GetBatteryInfo:^(NSNumber *battery) {
             
             NSDictionary* deviceInfo = @{kACTION:kACTION_BATTERY_ECG,kBATTERY_ECG:battery,kMAC:mac,kType:@"ECG3"};
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withErrorBlock:^(ECG3ErrorID errorID) {
             [weakSelf commandReturnECGError:errorID MAC:mac];
@@ -101,11 +103,11 @@ RCT_EXPORT_METHOD(getBattery:(nonnull NSString *)mac){
 RCT_EXPORT_METHOD(sysTime:(nonnull NSString *)mac){
     
     if ([self getECG3WithMac:mac]!=nil) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         [[self getECG3WithMac:mac] commandECG3SyncTime:^{
             
             NSDictionary* deviceInfo = @{kACTION:kACTION_SYSTIME,kMAC:mac,kType:@"ECG3"};
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withErrorBlock:^(ECG3ErrorID errorId) {
             [weakSelf commandReturnECGError:errorId MAC:mac];
@@ -120,12 +122,12 @@ RCT_EXPORT_METHOD(stopMeasure:(nonnull NSString *)mac){
     
     
     if ([self getECG3WithMac:mac]!=nil) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         [[self getECG3WithMac:mac] commandECG3FinishMeasure:^{
             
             
             NSDictionary* deviceInfo = @{kACTION:kACTION_STOPMEASURE_ECG,kMAC:mac,kType:@"ECG3"};
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withErrorBlock:^(ECG3ErrorID errorId) {
             [weakSelf commandReturnECGError:errorId MAC:mac];
@@ -142,24 +144,24 @@ RCT_EXPORT_METHOD(stopMeasure:(nonnull NSString *)mac){
 RCT_EXPORT_METHOD(startMeasure:(nonnull NSString *)mac){
     
     if ([self getECG3WithMac:mac]!=nil) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         [[self getECG3WithMac:mac] commandECG3StartMeasure:^{
             
         } withWaveData:^(NSArray *waveDataArray) {
             
             NSDictionary* deviceInfo = @{kACTION:kACTION_MEASURE_WAVEData,kMEASURE_WAVEData:waveDataArray,kMAC:mac,kType:@"ECG3"};
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withPulseResult:^(BOOL hasHR, NSUInteger HR) {
             
             NSDictionary* deviceInfo = @{kACTION:kACTION_MEASURE_ECGPulse,kMEASURE_ECGPulse:@(HR),kMAC:mac,kType:@"ECG3"};
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } withErrorBlock:^(ECG3ErrorID errorId) {
             
             if (errorId>= ECG3Error_ElectrodeLoss && errorId <= ECG3Error_ElectrodeLossTimeout) {
                 NSDictionary* deviceInfo = @{kACTION:kACTION_ELECTRODE_STATUS,kELECTRODE_STATUS:@(errorId),kMAC:mac,kType:@"ECG3"};
-                [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+                [weakSelf sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             } else {
                 [weakSelf commandReturnECGError:errorId MAC:mac];
             }
@@ -232,7 +234,8 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString *)mac){
         [deviceInfo setValue:MAC forKey:kMAC];
     }
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
 }
+
 
 @end

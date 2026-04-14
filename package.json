@@ -1,20 +1,56 @@
 {
-    "name": "@ihealth/ihealthlibrary-react-native",
-    "version": "1.9.1",
-    "description": "React Native Model for iHealth Library",
-    "main": "index.js",
-    "scripts": {
-      "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "repository": {
-      "type": "git",
-      "url": "git+https://iHealthLabs@github.com/iHealthLab/ReactNativeLibrary.git"
-    },
-    "author": "iHealthLabs",
-    "license": "ISC",
-    "bugs": {
-      "url": "https://github.com/iHealthDeviceLabs/iHealthLibrary_ReactNative/issues"
-    },
-    "homepage": "https://github.com/iHealthDeviceLabs/iHealthLibrary_ReactNative#readme"
+  "name": "@ihealth/ihealthlibrary-react-native",
+  "version": "2.0.0",
+  "description": "iHealth React Native SDK - supports React Native New Architecture (TurboModules) and Old Architecture",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "module/",
+    "src/",
+    "ios/ReactNativeIOSLibrary/",
+    "android/src/main/",
+    "android/libs/",
+    "android/build.gradle",
+    "android/proguard-rules.pro",
+    "ReactNativeIOSLibrary.podspec",
+    "MIGRATION_GUIDE.md",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "react-native",
+    "ihealth",
+    "bluetooth",
+    "health",
+    "blood-pressure",
+    "blood-glucose",
+    "pulse-oximeter",
+    "scale",
+    "ecg",
+    "turbomodule",
+    "new-architecture"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iHealthLab/iHealth-rn-sdk.git"
+  },
+  "author": "iHealthLabs",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/iHealthLab/iHealth-rn-sdk/issues"
+  },
+  "homepage": "https://github.com/iHealthLab/iHealth-rn-sdk#readme",
+  "peerDependencies": {
+    "react-native": ">=0.76.0"
+  },
+  "codegenConfig": {
+    "name": "iHealthLibrarySpec",
+    "type": "modules",
+    "jsSrcsDir": "src",
+    "android": {
+      "javaPackageName": "com.ihealth.library"
+    }
   }
-
+}

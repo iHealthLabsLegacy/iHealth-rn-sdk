@@ -6,7 +6,7 @@
 
 var {NativeModules} = require('react-native');
 
-var RCTModule = NativeModules.BGProfileModule
+var RCTModule = NativeModules.BGProfileModule || {}
 
 /**
  * @module BGProfileModule

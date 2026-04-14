@@ -18,8 +18,10 @@ import java.util.Map;
 /**
  * Created by lixuesong on 16/10/20.
  */
-@ReactModule(name = "HS6Module")
+@ReactModule(name = HS6Module.MODULE_NAME)
 public class HS6Module extends iHealthBaseModule {
+    public static final String MODULE_NAME = "HS6Module";
+
     private static final String modelName = "HS6Module";
     private static final String TAG = "HS6Module";
 
@@ -34,7 +36,7 @@ public class HS6Module extends iHealthBaseModule {
 
     @Override
     public String getName() {
-        return modelName;
+        return MODULE_NAME;
     }
 
     @Override
@@ -131,4 +133,10 @@ public class HS6Module extends iHealthBaseModule {
             handleNotify(mac, deviceType, action, message);
         }
     };
+
+    @ReactMethod
+    public void addListener(String eventName) {}
+
+    @ReactMethod
+    public void removeListeners(double count) {}
 }

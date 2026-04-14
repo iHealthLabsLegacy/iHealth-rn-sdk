@@ -18,12 +18,13 @@
 
 }
 
-#define EVENT_NOTIFY @"event_notify_po3"
-
-@synthesize bridge = _bridge;
+#define EVENT_NOTIFY @"event_notify_btm"
 
 RCT_EXPORT_MODULE()
 
+- (NSArray<NSString *> *)supportedEvents {
+    return @[EVENT_NOTIFY];
+}
 
 #pragma mark
 #pragma mark - constantsToExport
@@ -41,7 +42,7 @@ RCT_EXPORT_MODULE()
 #pragma mark - Init
 -(id)init
 {
-    if (self=[super init])
+    if (self=[super initWithDisabledObservation])
     {
         
         [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(reciveDeviceData:) name:@"THV3NewDataCome" object:nil];
@@ -97,7 +98,7 @@ RCT_EXPORT_MODULE()
             if (rtTemperature.measureDate!=nil) {
                 
                 NSDictionary* deviceInfo = @{BTM_ACTION:BTM_ACTION_MEASURE,BTM_TEMPERATURE:[NSNumber numberWithFloat:rtTemperature.temperature],BTM_MEASURE_TIME:[mydateFormatter stringFromDate:rtTemperature.measureDate],BTM_TEMPERATURE_TARGET:target};
-                [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+                [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             }
             
             
@@ -112,7 +113,7 @@ RCT_EXPORT_MODULE()
         
         
         NSDictionary* deviceInfo = @{BTM_ACTION:BTM_ACTION_ERROR,BTM_ERROR_DESCRIPTION:@"disconnect"};
-        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+        [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         
     }
     
@@ -140,7 +141,7 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
     
     NSDictionary* deviceInfo = @{@"action":@"ACTION_GET_ALL_CONNECTED_DEVICES",BTM_DEVICE:deviceMacArray};
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
     
     
 }
@@ -161,7 +162,7 @@ RCT_EXPORT_METHOD(getBattery:(nonnull NSString *)mac){
     }
     
     NSDictionary* deviceInfo = @{BTM_ACTION:BTM_ACTION_BATTERY,BTM_BATTERY:battNum};
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
     
 }
 
@@ -198,7 +199,7 @@ RCT_EXPORT_METHOD(getMemoryData:(nonnull NSString *)mac){
             if (tempArr.count>0) {
                 
                 NSDictionary* deviceInfo = @{BTM_ACTION:BTM_ACTION_MEMORY,BTM_TEMPERATURE_ARRAY:tempArr,BTM_MEMORY_COUNT:[NSNumber numberWithInt:tempArr.count]};
-                [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+                [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             }
             
             
@@ -208,7 +209,7 @@ RCT_EXPORT_METHOD(getMemoryData:(nonnull NSString *)mac){
     }else{
 
         NSDictionary* deviceInfo = @{BTM_ACTION:BTM_ACTION_ERROR,BTM_ERROR_DESCRIPTION:@"disconnect"};
-        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+        [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
 
     }
     
@@ -223,7 +224,7 @@ RCT_EXPORT_METHOD(setStandbyTime:(nonnull NSString *)mac :(nonnull NSNumber *)ho
         [[self getTHV3WithMac:mac] configIdleTime:timeInterval withResultBlock:^(BOOL success) {
             
             NSDictionary* deviceInfo = @{BTM_ACTION:BTM_ACTION_CALLBACK};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         }];
         
@@ -231,7 +232,7 @@ RCT_EXPORT_METHOD(setStandbyTime:(nonnull NSString *)mac :(nonnull NSNumber *)ho
     }else{
         
         NSDictionary* deviceInfo = @{BTM_ACTION:BTM_ACTION_ERROR,BTM_ERROR_DESCRIPTION:@"disconnect"};
-        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+        [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         
     }
     
@@ -258,7 +259,7 @@ RCT_EXPORT_METHOD(setTemperatureUnit:(nonnull NSString *)mac:(nonnull NSNumber *
         [[self getTHV3WithMac:mac] configTemperUnit:isUnitC withResultBlock:^(BOOL success) {
             
             NSDictionary* deviceInfo = @{BTM_ACTION:BTM_ACTION_CALLBACK};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         }];
         
@@ -266,7 +267,7 @@ RCT_EXPORT_METHOD(setTemperatureUnit:(nonnull NSString *)mac:(nonnull NSNumber *
     }else{
         
         NSDictionary* deviceInfo = @{BTM_ACTION:BTM_ACTION_ERROR,BTM_ERROR_DESCRIPTION:@"disconnect"};
-        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+        [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         
     }
     
@@ -290,7 +291,7 @@ RCT_EXPORT_METHOD(setMeasuringTarget:(nonnull NSString *)mac :(nonnull NSNumber 
         
         [[self getTHV3WithMac:mac] configMeasureTarget:istarget withResultBlock:^(BOOL success) {
             NSDictionary* deviceInfo = @{BTM_ACTION:BTM_ACTION_CALLBACK};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         }];
         
@@ -298,7 +299,7 @@ RCT_EXPORT_METHOD(setMeasuringTarget:(nonnull NSString *)mac :(nonnull NSNumber 
     }else{
         
         NSDictionary* deviceInfo = @{BTM_ACTION:BTM_ACTION_ERROR,BTM_ERROR_DESCRIPTION:@"disconnect"};
-        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+        [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         
     }
     
@@ -322,7 +323,7 @@ RCT_EXPORT_METHOD(setOfflineTarget:(nonnull NSString *)mac:(nonnull NSNumber *)t
         [[self getTHV3WithMac:mac] configOfflineMode:istarget withResultBlock:^(BOOL success) {
             
             NSDictionary* deviceInfo = @{BTM_ACTION:BTM_ACTION_CALLBACK};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         }];
         
@@ -330,7 +331,7 @@ RCT_EXPORT_METHOD(setOfflineTarget:(nonnull NSString *)mac:(nonnull NSNumber *)t
     }else{
         
         NSDictionary* deviceInfo = @{BTM_ACTION:BTM_ACTION_ERROR,BTM_ERROR_DESCRIPTION:@"disconnect"};
-        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+        [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         
     }
     
@@ -346,7 +347,7 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString *)mac){
         [[self getTHV3WithMac:mac] commandDisconnectDevice];
         
 //        NSDictionary* deviceInfo = @{BTM_ACTION:BTM_ACTION_CALLBACK};
-//        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+//        [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         
     }else{
         
@@ -357,6 +358,7 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString *)mac){
     
     
 }
+
 
 
 

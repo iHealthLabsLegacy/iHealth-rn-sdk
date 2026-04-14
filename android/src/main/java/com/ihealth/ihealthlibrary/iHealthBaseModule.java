@@ -8,16 +8,17 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.facebook.react.bridge.ReactContext;
 
 /**
  * Created by Jeepend on 21/11/2016.
  * Base class for iHealth Modules, provide sendEvent method for you.
+ * Updated for React Native 0.81+ compatibility.
  */
 @ReactModule(name = "iHealthBaseModule")
 public abstract class iHealthBaseModule extends ReactContextBaseJavaModule {
 
     private final String TAG;
-    private DeviceEventManagerModule.RCTDeviceEventEmitter mEmitter = null;
     public static final String ACTION_GET_ALL_CONNECTED_DEVICES = "action_get_all_connected_devices";
     private static ReactApplicationContext sReactContext;
 
@@ -28,11 +29,13 @@ public abstract class iHealthBaseModule extends ReactContextBaseJavaModule {
     }
 
     void sendEvent(String eventName, WritableMap data) {
-        mEmitter = sReactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
-        if (mEmitter != null) {
-            mEmitter.emit(eventName, data);
+        ReactContext reactContext = getReactApplicationContext();
+        if (reactContext != null) {
+            reactContext
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                .emit(eventName, data);
         } else {
-            Log.e(TAG, "mEmitter is null, can't send event.");
+            Log.e(TAG, "ReactContext is null, can't send event: " + eventName);
         }
     }
 

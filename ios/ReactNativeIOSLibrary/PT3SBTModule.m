@@ -22,10 +22,11 @@
 #define kMAC_KEY        @"mac"
 #define kACTION_KEY     @"action"
 
-@synthesize bridge = _bridge;
-
 RCT_EXPORT_MODULE()
 
+- (NSArray<NSString *> *)supportedEvents {
+    return @[EVENT_NOTIFY];
+}
 
 #pragma mark
 #pragma mark - constantsToExport
@@ -43,7 +44,7 @@ RCT_EXPORT_MODULE()
 #pragma mark - Init
 -(id)init
 {
-    if (self=[super init])
+    if (self=[super initWithDisabledObservation])
     {
        
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(devicePT3SBTMeasure:) name:@"PT3SBTNotificationGetResult" object:nil];
@@ -73,7 +74,7 @@ RCT_EXPORT_MODULE()
     
     NSDictionary* deviceInfo = @{
         kACTION_KEY:kACTION_TEMPERATURE_MEASUREMENT,TEMPERATURE:[measureDataDic valueForKey:@"Tbody"]};
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
 }
 
 
@@ -117,7 +118,7 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
     
     NSDictionary* deviceInfo = @{kACTION_KEY:kACTION_GET_ALL_CONNECTED_DEVICES,@"devices":deviceMacArray};
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
     
     
 }
@@ -127,11 +128,11 @@ RCT_EXPORT_METHOD(setTime:(nonnull NSString *)mac){
     
     
     if ([self getPT3SBTWithMac:mac]) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getPT3SBTWithMac:mac] commandFunction:^(NSDictionary *functionDict) {
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             kMAC_KEY:mac,
                                                             kACTION_KEY:kACTION_SET_TIME,
                                                             }];
@@ -158,11 +159,11 @@ RCT_EXPORT_METHOD(setUnit:(nonnull NSString *)mac :(nonnull NSNumber *)unit){
             tempUnit = PT3SBTTemperatureUnit_C;
             return;
         }
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getPT3SBTWithMac:mac] commandPT3SBTSetUnit:tempUnit DisposeSetUnitResult:^(BOOL setResult) {
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                         kMAC_KEY:mac,
                                                         kACTION_KEY:kACTION_SET_UNIT,
                                                         }];
@@ -182,7 +183,7 @@ RCT_EXPORT_METHOD(getUnit:(nonnull NSString *)mac){
         
         [[self getPT3SBTWithMac:mac] commandPT3SBTGetUnit:^(PT3SBTTemperatureUnit unit) {
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [self sendEventWithName:EVENT_NOTIFY body:@{
                                                         kMAC_KEY:mac,
                                                         UNIT:[NSNumber numberWithInt:unit],
                                                         kACTION_KEY:kACTION_GET_UNIT,
@@ -202,7 +203,7 @@ RCT_EXPORT_METHOD(getHistoryCount:(nonnull NSString *)mac){
         
         [[self getPT3SBTWithMac:mac] commandPT3SBTGetMemoryCount:^(NSNumber *count) {
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [self sendEventWithName:EVENT_NOTIFY body:@{
                                                         kMAC_KEY:mac,
                                                         COUNT:count,
                                                         kACTION_KEY:kACTION_GET_HISTORY_COUNT,
@@ -249,14 +250,14 @@ RCT_EXPORT_METHOD(getHistoryData:(nonnull NSString *)mac){
                     
                     NSDictionary *deviceInfo = @{kMAC_KEY:mac,kACTION_KEY:kACTION_GET_HISTORY_DATA,HISTORY:dataArray};
                     
-                    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+                    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
                     NSLog(@"historyDataArray:%@",memoryDataArray);
                     
                 }else{
                     
                     NSDictionary *deviceInfo = @{kMAC_KEY:mac,kACTION_KEY:kACTION_GET_HISTORY_DATA,HISTORY:[NSArray array]};
                     
-                    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+                    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
                     
                 }
                 
@@ -278,7 +279,7 @@ RCT_EXPORT_METHOD(deleteHistory:(nonnull NSString *)mac){
         
         [[self getPT3SBTWithMac:mac] commandDeleteMemorryData:^(BOOL deleteResult) {
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [self sendEventWithName:EVENT_NOTIFY body:@{
                                                         kMAC_KEY:mac,
                                                         kACTION_KEY:kACTION_DELETE_HISTORY_DATA,
                                                         }];
@@ -299,7 +300,7 @@ RCT_EXPORT_METHOD(getBattery:(nonnull NSString *)mac){
         [[self getPT3SBTWithMac:mac] commandGetPT3SBTBattery:^(NSNumber *battary) {
             
             NSDictionary* deviceInfo = @{kACTION_KEY:kACTION_GET_BATTERY,BATTERY:battary};
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
             
         } DiaposeErrorBlock:^(PT3SBTDeviceError error) {
             
@@ -309,7 +310,7 @@ RCT_EXPORT_METHOD(getBattery:(nonnull NSString *)mac){
     }else{
         
         NSDictionary* deviceInfo = @{kACTION_KEY:@"ACTION_ERROR_PO",@"error_po":@"disconnect"};
-        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+        [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         
     }
     
@@ -332,6 +333,7 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString *)mac){
     
     
 }
+
 
 
 

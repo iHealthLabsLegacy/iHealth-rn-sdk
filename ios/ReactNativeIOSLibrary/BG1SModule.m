@@ -14,8 +14,20 @@
 #import "BGHeader.h"
 
 @implementation BG1SModule
-@synthesize bridge = _bridge;
+
+- (instancetype)init
+{
+  // initWithDisabledObservation sets _observationDisabled = YES so that
+  // sendEventWithName:body: always dispatches regardless of _listenerCount.
+  // This is required for React Native New Architecture (TurboModule) compatibility.
+  return [super initWithDisabledObservation];
+}
+
 RCT_EXPORT_MODULE()
+
+- (NSArray<NSString *> *)supportedEvents {
+    return @[BG1S_EVENT_NOTIFY];
+}
 
 - (NSDictionary *)constantsToExport
 {
@@ -61,7 +73,7 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
     
     NSDictionary* deviceInfo = @{BG1S_ACTION:kACTION_GET_ALL_CONNECTED_DEVICES,BG1S_DEVICE:deviceMacArray};
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:BG1S_EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:BG1S_EVENT_NOTIFY body:deviceInfo];
 }
 
 RCT_EXPORT_METHOD(measure:(nonnull NSString *)mac measureMode:(nonnull NSNumber *)testType){
@@ -83,7 +95,7 @@ RCT_EXPORT_METHOD(measure:(nonnull NSString *)mac measureMode:(nonnull NSNumber 
         [[self getDeviceWithMac:mac] commandCreateBG1STestModel:models DisposeBGStripInBlock:^(BOOL inORout) {
             
             if (inORout) {
-                [self.bridge.eventDispatcher sendDeviceEventWithName:BG1S_EVENT_NOTIFY body:@{
+                [self sendEventWithName:BG1S_EVENT_NOTIFY body:@{
                     BG1S_ACTION:ACTION_STRIP_INSERTION_STATUS,
                     BG1S_KEY_MAC:mac,
                     BG1S_TYPE:@"BG1S",
@@ -92,7 +104,7 @@ RCT_EXPORT_METHOD(measure:(nonnull NSString *)mac measureMode:(nonnull NSNumber 
                 }];
             }else{
                 
-                [self.bridge.eventDispatcher sendDeviceEventWithName:BG1S_EVENT_NOTIFY body:@{
+                [self sendEventWithName:BG1S_EVENT_NOTIFY body:@{
                     BG1S_ACTION:ACTION_STRIP_INSERTION_STATUS,
                     BG1S_KEY_MAC:mac,
                     BG1S_TYPE:@"BG1S",
@@ -103,7 +115,7 @@ RCT_EXPORT_METHOD(measure:(nonnull NSString *)mac measureMode:(nonnull NSNumber 
             
         } DisposeBGBloodBlock:^{
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:BG1S_EVENT_NOTIFY body:@{
+            [self sendEventWithName:BG1S_EVENT_NOTIFY body:@{
                 BG1S_ACTION:ACTION_GET_BLOOD,
                 BG1S_KEY_MAC:mac,
                 BG1S_TYPE:@"BG1S",
@@ -113,7 +125,7 @@ RCT_EXPORT_METHOD(measure:(nonnull NSString *)mac measureMode:(nonnull NSNumber 
         } DisposeBGResultBlock:^(NSDictionary *result) {
             
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:BG1S_EVENT_NOTIFY body:@{
+            [self sendEventWithName:BG1S_EVENT_NOTIFY body:@{
                 BG1S_ACTION:ACTION_MEASURE_RESULT,
                 BG1S_KEY_MAC:mac,
                 BG1S_TYPE:@"BG1S",
@@ -140,7 +152,7 @@ RCT_EXPORT_METHOD(getFunction:(nonnull NSString *)mac){
         [[self getDeviceWithMac:mac] commandFunction:^(NSDictionary *functionDict) {
             
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:BG1S_EVENT_NOTIFY body:@{
+            [self sendEventWithName:BG1S_EVENT_NOTIFY body:@{
                 BG1S_ACTION:ACTION_CODE_ANALYSIS,
                 BG1S_KEY_MAC:mac,
                 BG1S_TYPE:@"BG1S",
@@ -209,9 +221,10 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString *)mac){
                 }
     
                 NSDictionary *deviceInfo = @{BG1S_KEY_MAC:mac,BG1S_ACTION:ACTION_ERROR_BG1S,ERROR_NUM_BG1S:[NSNumber numberWithInt:errorID],ERROR_DESCRIPTION_BG1S:errorMassage};
-                [self.bridge.eventDispatcher sendDeviceEventWithName:BG1S_EVENT_NOTIFY body:deviceInfo];
+                [self sendEventWithName:BG1S_EVENT_NOTIFY body:deviceInfo];
     
     
 }
+
 
 @end

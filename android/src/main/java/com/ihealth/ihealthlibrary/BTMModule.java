@@ -19,8 +19,10 @@ import java.util.Map;
 /**
  * Created by lixuesong on 2016/11/21.
  */
-@ReactModule(name = "BTMModule")
+@ReactModule(name = BTMModule.MODULE_NAME)
 public class BTMModule extends iHealthBaseModule {
+    public static final String MODULE_NAME = "BTMModule";
+
     private static final String modelName = "BTMModule";
     private static final String TAG = "BTMModule";
 
@@ -32,7 +34,7 @@ public class BTMModule extends iHealthBaseModule {
 
     @Override
     public String getName() {
-        return modelName;
+        return MODULE_NAME;
     }
 
     @Override
@@ -142,4 +144,10 @@ public class BTMModule extends iHealthBaseModule {
         }
         sendEvent(EVENT_NOTIFY, params);
     }
+
+    @ReactMethod
+    public void addListener(String eventName) {}
+
+    @ReactMethod
+    public void removeListeners(double count) {}
 }

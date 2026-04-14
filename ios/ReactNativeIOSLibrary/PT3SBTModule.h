@@ -9,11 +9,20 @@
 #import <Foundation/Foundation.h>
 
 #if __has_include(<React/RCTAssert.h>)
-#import <React/RCTEventDispatcher.h>
+#import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
 #else
-#import <React/RCTEventDispatcher.h>
+#import <React/RCTBridgeModule.h>
+#import <React/RCTEventEmitter.h>
 #endif
-@interface PT3SBTModule : NSObject<RCTBridgeModule>
+#if RCT_NEW_ARCH_ENABLED
+#import <React/RCTTurboModule.h>
+#endif
+@interface PT3SBTModule : RCTEventEmitter <RCTBridgeModule
+#if RCT_NEW_ARCH_ENABLED
+, RCTTurboModule
+#endif
+>
 
 
 @end

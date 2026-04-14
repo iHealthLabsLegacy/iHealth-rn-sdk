@@ -23,8 +23,20 @@
 @end
 
 @implementation BP3LModule
-@synthesize bridge = _bridge;
+
+- (instancetype)init
+{
+  // initWithDisabledObservation sets _observationDisabled = YES so that
+  // sendEventWithName:body: always dispatches regardless of _listenerCount.
+  // This is required for React Native New Architecture (TurboModule) compatibility.
+  return [super initWithDisabledObservation];
+}
+
 RCT_EXPORT_MODULE()
+
+- (NSArray<NSString *> *)supportedEvents {
+    return @[EVENT_NOTIFY];
+}
 
 - (NSDictionary *)constantsToExport
 {
@@ -75,7 +87,7 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
     
     NSDictionary* deviceInfo = @{@"action":@"ACTION_GET_ALL_CONNECTED_DEVICES",@"devices":deviceMacArray};
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
     
     
 }
@@ -86,14 +98,14 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
 RCT_EXPORT_METHOD(startMeasure:(nonnull NSString *)mac){
     
     if ([self getDeviceWithMac:mac]!=nil) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getDeviceWithMac:mac] commandStartMeasureWithZeroingState:^(BOOL isComplete) {
             weakSelf.isMeasuring = YES;
             NSDictionary* response = @{
                                        kACTION:isComplete ? kACTION_ZOREING_BP : kACTION_ZOREOVER_BP,
                                        };
-            [BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
         } pressure:^(NSArray *pressureArr) {
             weakSelf.isMeasuring = YES;
             NSLog(@"pressure %@",pressureArr);
@@ -101,7 +113,7 @@ RCT_EXPORT_METHOD(startMeasure:(nonnull NSString *)mac){
                                        kACTION:kACTION_ONLINE_PRESSURE_BP,
                                        kBLOOD_PRESSURE_BP:pressureArr.firstObject,
                                        };
-            [BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
         } waveletWithHeartbeat:^(NSArray *waveletArr) {
             weakSelf.isMeasuring = YES;
             NSLog(@"xiaoboWithHeart %@",waveletArr);
@@ -110,7 +122,7 @@ RCT_EXPORT_METHOD(startMeasure:(nonnull NSString *)mac){
                                        kFLAG_HEARTBEAT_BP:@(1),
                                        kPULSEWAVE_BP:waveletArr
                                        };
-            [BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
         } waveletWithoutHeartbeat:^(NSArray *waveletArr) {
             weakSelf.isMeasuring = YES;
             NSLog(@"xiaoboNoHeart %@",waveletArr);
@@ -119,7 +131,7 @@ RCT_EXPORT_METHOD(startMeasure:(nonnull NSString *)mac){
                                        kFLAG_HEARTBEAT_BP:@(0),
                                        kPULSEWAVE_BP:waveletArr
                                        };
-            [BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
         } result:^(NSDictionary *resultDict) {
             weakSelf.isMeasuring = NO;
             NSLog(@"result %@",resultDict);
@@ -131,7 +143,7 @@ RCT_EXPORT_METHOD(startMeasure:(nonnull NSString *)mac){
                                        kMEASUREMENT_AHR_BP:resultDict[@"irregular"],
                                        kDATAID:resultDict[@"dataID"],
                                        };
-            [BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
         } errorBlock:^(BPDeviceError error) {
             weakSelf.isMeasuring = NO;
             NSLog(@"error %d",error);
@@ -154,7 +166,7 @@ RCT_EXPORT_METHOD(stopMeasure:(nonnull NSString *)mac){
         [BPProfileModule sendErrorToBridge:self.bridge eventNotify:EVENT_NOTIFY WithCode:401];
         return;
     }
-    __weak typeof(self) weakSelf = self;
+    __weak __typeof__(self) weakSelf = self;
     if ([self getDeviceWithMac:mac]!=nil) {
         [[self getDeviceWithMac:mac] stopBPMeassureSuccessBlock:^{
             
@@ -162,7 +174,7 @@ RCT_EXPORT_METHOD(stopMeasure:(nonnull NSString *)mac){
             NSDictionary* response = @{
                                        kACTION:kACTION_INTERRUPTED_BP,
                                        };
-            [BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
             
         } errorBlock:^(BPDeviceError error) {
             
@@ -184,13 +196,13 @@ RCT_EXPORT_METHOD(stopMeasure:(nonnull NSString *)mac){
 RCT_EXPORT_METHOD(getBattery:(nonnull NSString *)mac){
     
     if ([self getDeviceWithMac:mac]!=nil) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         [[self getDeviceWithMac:mac] commandEnergy:^(NSNumber *energyValue) {
             NSDictionary* response = @{
                                        kACTION:kACTION_BATTERY_BP,
                                        kBATTERY_BP:energyValue
                                        };
-            [BPProfileModule sendEventToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithDict:response];
+            [BPProfileModule sendEventToEmitter:weakSelf eventNotify:EVENT_NOTIFY WithDict:response];
         } errorBlock:^(BPDeviceError error) {
             NSLog(@"error %d",error);
             [BPProfileModule sendErrorToBridge:weakSelf.bridge eventNotify:EVENT_NOTIFY WithCode:error];
@@ -214,6 +226,7 @@ RCT_EXPORT_METHOD(disconnect:(nonnull NSString *)mac){
     
     
 }
+
 
 
 @end

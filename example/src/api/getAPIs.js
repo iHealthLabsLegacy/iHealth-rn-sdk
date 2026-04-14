@@ -6,6 +6,7 @@ import hs2sAPI from './hs2sAPI'
 import hs2sProAPI from './hs2sProAPI'
 import bp5sAPI from './bp5sAPI'
 import bg1sAPI from './bg1sAPI'
+import po3API from './po3API'
 import {
   BG1AModule,
   BP550BTModule,
@@ -14,10 +15,26 @@ import {
   HS2SModule,
   HS2SProModule,
   BP5SModule,
-  BG1SModule
+  BG1SModule,
+  PO3Module
 } from '@ihealth/ihealthlibrary-react-native'
 
+// Maps device type to its native module name (for NativeEventEmitter)
+const deviceModuleNameMap = {
+  'KN550':    'BP550BTModule',
+  'BG1A':     'BG1AModule',
+  'AM6':      'AM6Module',
+  'BG5S':     'BG5SModule',
+  'HS2S':     'HS2SModule',
+  'HS2S Pro': 'HS2SProModule',
+  'BP5S':     'BP5SModule',
+  'BG1S':     'BG1SModule',
+  'PO3':      'PO3Module',
+};
+
 export default {
+
+  getDeviceModuleName: (type) => deviceModuleNameMap[type],
 
   getDeviceNotify: (type) => {
     switch (type) {
@@ -43,6 +60,9 @@ export default {
         return BP5SModule.Event_Notify
       case 'BG1S':
         return BG1SModule.Event_Notify
+
+      case 'PO3':
+        return PO3Module.Event_Notify
     }
   },
 
@@ -70,6 +90,9 @@ export default {
         return bp5sAPI
       case 'BG1S':
         return bg1sAPI
+
+      case 'PO3':
+        return po3API
     }
   }
 }

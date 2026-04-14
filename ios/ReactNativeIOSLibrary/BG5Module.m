@@ -32,9 +32,11 @@
 
 @implementation BG5Module
 
-@synthesize bridge = _bridge;
-
 RCT_EXPORT_MODULE()
+
+- (NSArray<NSString *> *)supportedEvents {
+    return @[EVENT_NOTIFY];
+}
 
 - (NSDictionary *)constantsToExport{
     return @{
@@ -47,7 +49,7 @@ RCT_EXPORT_MODULE()
 }
 #pragma mark - Objc Method
 -(id)init{
-    self = [super init];
+    self = [super initWithDisabledObservation];
     if (self) {
         [BG5Controller shareIHBg5Controller];
         self.deviceSelectedOpenMode = 0;// 初始化时，将开机模式设置为0；目的是，在用户调用开始测量方法时，判断用户是否已经调用过发码方法。调用过发码方法后，openMode的值是1或2
@@ -179,7 +181,7 @@ RCT_EXPORT_MODULE()
             break;
     }
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+    [self sendEventWithName:EVENT_NOTIFY body:@{
                                                                              kMAC_KEY:mac,
                                                                              kACTION_KEY:kACTION_ERROR_BG,
                                                                              kERROR_NUM_BG:errorId,
@@ -189,13 +191,13 @@ RCT_EXPORT_MODULE()
 
 - (void)sendNoMatchedDeviceEventWithMac:(NSString *)mac{
     if (mac && mac.length > 0) {
-        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+        [self sendEventWithName:EVENT_NOTIFY body:@{
                                                                                  kMAC_KEY:mac,
                                                                                  kACTION_KEY:kACTION_ERROR_BG,
                                                                                  kERROR_NUM_BG:@100
                                                                                  }];
     } else {
-        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+        [self sendEventWithName:EVENT_NOTIFY body:@{
                                                                                  kACTION_KEY:kACTION_ERROR_BG,
                                                                                  kERROR_NUM_BG:@100
                                                                                  }];
@@ -205,14 +207,14 @@ RCT_EXPORT_MODULE()
 
 - (void)sendInputParameterErrorEventWithMac:(NSString *)mac{
     if (mac && mac.length > 0) {
-        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+        [self sendEventWithName:EVENT_NOTIFY body:@{
                                                                                  kMAC_KEY:mac,
                                                                                  kACTION_KEY:kACTION_ERROR_BG,
                                                                                  kERROR_NUM_BG:@400,
                                                                                  kERROR_DESCRIPTION_BG:@"Parameters out of range."
                                                                                  }];
     } else {
-        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+        [self sendEventWithName:EVENT_NOTIFY body:@{
                                                                                  kACTION_KEY:kACTION_ERROR_BG,
                                                                                  kERROR_NUM_BG:@400,
                                                                                  kERROR_DESCRIPTION_BG:@"Parameters out of range."
@@ -241,7 +243,7 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
     
     NSDictionary* deviceInfo = @{kACTION_KEY:@"ACTION_GET_ALL_CONNECTED_DEVICES",@"devices":deviceMacArray};
     
-    [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+    [self sendEventWithName:EVENT_NOTIFY body:deviceInfo];
     
     
 }
@@ -250,9 +252,9 @@ RCT_EXPORT_METHOD(getAllConnectedDevices){
 RCT_EXPORT_METHOD(holdLink:(nonnull NSString *)mac){
 
     if ([self getDeviceWithMac:mac]) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         [[self getDeviceWithMac:mac] commandKeepConnect:^(BOOL sendOk) {
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                         kMAC_KEY:mac,
                                                         kACTION_KEY:kACTION_KEEP_LINK,
                                                         }];
@@ -268,10 +270,10 @@ RCT_EXPORT_METHOD(holdLink:(nonnull NSString *)mac){
 RCT_EXPORT_METHOD(getBattery:(nonnull NSString *)mac){
 
     if ([self getDeviceWithMac:mac]) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         [[self getDeviceWithMac:mac] commandQueryBattery:^(NSNumber *energy) {
             NSLog(@"电量");
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             kMAC_KEY:mac,
                                                             kACTION_KEY:kACTION_GET_BATTERY,
                                                             kGET_BATTERY:energy
@@ -290,9 +292,9 @@ RCT_EXPORT_METHOD(setTime:(nonnull NSString *)mac){
     
     
     if ([self getDeviceWithMac:mac]) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         [[self getDeviceWithMac:mac] commandBGSetTime:^(BOOL setResult) {
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             kMAC_KEY:mac,
                                                             kACTION_KEY:kACTION_SET_TIME,
                                                             }];
@@ -319,9 +321,9 @@ RCT_EXPORT_METHOD(setUnit:(nonnull NSString *)mac unitType:(nonnull NSNumber *)t
             [self sendInputParameterErrorEventWithMac:mac];
             return;
         }
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         [[self getDeviceWithMac:mac] commandBGSetUnit:tempUnit DisposeSetUnitResult:^(BOOL setResult) {
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                         kMAC_KEY:mac,
                                                         kACTION_KEY:kACTION_SET_UNIT,
                                                         }];
@@ -340,9 +342,9 @@ RCT_EXPORT_METHOD(setUnit:(nonnull NSString *)mac unitType:(nonnull NSNumber *)t
 RCT_EXPORT_METHOD(getBottleId:(nonnull NSString *)mac){
     
     if ([self getDeviceWithMac:mac]) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         [[self getDeviceWithMac:mac]commandBGGetBottleID:^(NSNumber *bottleID) {
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                             kMAC_KEY:mac,
                                                             kACTION_KEY:kACTION_GET_BOTTLEID,
                                                             kGET_BOTTLEID:bottleID,
@@ -381,7 +383,7 @@ RCT_EXPORT_METHOD(startMeasure:(nonnull NSString *)mac measureType:(nonnull NSNu
             return;
         }
         
-        [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+        [self sendEventWithName:EVENT_NOTIFY body:@{
                                                                                      kMAC_KEY:mac,
                                                                                      kACTION_KEY:kACTION_START_MEASURE,
                                                                                      }];
@@ -396,12 +398,12 @@ RCT_EXPORT_METHOD(startMeasure:(nonnull NSString *)mac measureType:(nonnull NSNu
 RCT_EXPORT_METHOD(getOfflineData:(nonnull NSString *)mac){
     
     if ([self getDeviceWithMac:mac]) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         [[self getDeviceWithMac:mac]commandTransferMemorryData:^(NSNumber *dataCount) {
             
             NSDictionary *deviceInfo = @{@"mac":mac,@"action":kACTION_GET_OFFLINEDATA_COUNT,kGET_OFFLINEDATA_COUNT:dataCount,@"type":@"BG5"};
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         } DisposeBGHistoryData:^(NSDictionary *historyDataDic) {
             
             NSArray *historyArr = [NSArray arrayWithArray:[historyDataDic objectForKey:@"ResultList"]];
@@ -425,7 +427,7 @@ RCT_EXPORT_METHOD(getOfflineData:(nonnull NSString *)mac){
             
             NSDictionary *deviceInfo = @{@"mac":mac,@"action":kACTION_GET_OFFLINEDATA,kGET_OFFLINEDATA:hisDic,@"type":@"BG5"};
             
-            [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:deviceInfo];
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:deviceInfo];
         } DisposeBGErrorBlock:^(NSNumber *errorID) {
             [weakSelf sendMeasureErrorEventWithMac:mac errorId:errorID];
         }];
@@ -441,7 +443,7 @@ RCT_EXPORT_METHOD(deleteOfflineData:(nonnull NSString *)mac){
         
         [[self getDeviceWithMac:mac] commandDeleteMemorryData:^(BOOL deleteOk) {
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [self sendEventWithName:EVENT_NOTIFY body:@{
                                                                                      kMAC_KEY:mac,
                                                                                      kACTION_KEY:kACTION_DELETE_OFFLINEDATA,
                                                                                      }];
@@ -481,7 +483,7 @@ RCT_EXPORT_METHOD(setBottleMessageWithInfo:(nonnull NSString *)mac codeMode:(non
         NSDictionary *codeDic = [[self getDeviceWithMac:mac]codeStripStrAnalysis:qrCode];
         NSNumber *bottleID = [codeDic objectForKey:@"BottleID"];
         
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         [[self getDeviceWithMac:mac]commandSendBGCodeWithMeasureType:(BGMeasureMode)testType.integerValue
                                                             CodeType:(BGCodeMode)codeType.integerValue
                                                           CodeString:qrCode
@@ -489,7 +491,7 @@ RCT_EXPORT_METHOD(setBottleMessageWithInfo:(nonnull NSString *)mac codeMode:(non
                                                            remainNum:stripNum
                                               DisposeBGSendCodeBlock:^(BOOL sendOk) {
                                                   // 发码成功，发送事件
-                                                  [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+                                                  [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                                                                                                kMAC_KEY:mac,
                                                                                                                                kACTION_KEY:kACTION_SET_BOTTLEMESSAGE,
                                                                                                                                }];
@@ -497,17 +499,17 @@ RCT_EXPORT_METHOD(setBottleMessageWithInfo:(nonnull NSString *)mac codeMode:(non
                                                   weakSelf.deviceSelectedOpenMode = mode;
                                                   if (mode == BGOpenMode_Strip) {
                                                       [[weakSelf getDeviceWithMac:mac]commandCreateBGtestStripInBlock:^{
-                                                          [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+                                                          [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                                                                                                        kMAC_KEY:mac,
                                                                                                                                        kACTION_KEY:kACTION_STRIP_IN,
                                                                                                                                        }];
                                                       } DisposeBGBloodBlock:^{
-                                                          [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+                                                          [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                                                                                                        kMAC_KEY:mac,
                                                                                                                                        kACTION_KEY:kACTION_GET_BLOOD,
                                                                                                                                        }];
                                                       } DisposeBGResultBlock:^(NSDictionary *result) {
-                                                          [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+                                                          [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                                                                                                        kMAC_KEY:mac,
                                                                                                                                        kACTION_KEY:kACTION_ONLINE_RESULT_BG,
                                                                                                                                        kONLINE_RESULT_BG:[result objectForKey:@"Result"],
@@ -519,17 +521,17 @@ RCT_EXPORT_METHOD(setBottleMessageWithInfo:(nonnull NSString *)mac codeMode:(non
                                                       }];
                                                   } else {
                                                       [[weakSelf getDeviceWithMac:mac]commandCreateBGtestModel:(BGMeasureMode)testType.integerValue DisposeBGStripInBlock:^{
-                                                          [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+                                                          [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                                                                                                        kMAC_KEY:mac,
                                                                                                                                        kACTION_KEY:kACTION_STRIP_IN,
                                                                                                                                        }];
                                                       } DisposeBGBloodBlock:^{
-                                                          [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+                                                          [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                                                                                                        kMAC_KEY:mac,
                                                                                                                                        kACTION_KEY:kACTION_GET_BLOOD,
                                                                                                                                        }];
                                                       } DisposeBGResultBlock:^(NSDictionary *result) {
-                                                          [weakSelf.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+                                                          [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                                                                                                        kMAC_KEY:mac,
                                                                                                                                        kACTION_KEY:kACTION_ONLINE_RESULT_BG,
                                                                                                                                        kONLINE_RESULT_BG:[result objectForKey:@"Result"],
@@ -556,7 +558,7 @@ RCT_EXPORT_METHOD(setBottleMessageWithInfo:(nonnull NSString *)mac codeMode:(non
 RCT_EXPORT_METHOD(getBottleMessage:(nonnull NSString *)mac){
     
     if ([self getDeviceWithMac:mac]) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         [[self getDeviceWithMac:mac]commandReadBGCodeDic:^(NSDictionary *codeDic) {
             
             NSDate *tempDate = [codeDic objectForKey:@"Date"];
@@ -567,7 +569,7 @@ RCT_EXPORT_METHOD(getBottleMessage:(nonnull NSString *)mac){
             [mydateFormatter setTimeZone:dongBaTimeZone];
             NSString *dateStr = [mydateFormatter stringFromDate:tempDate];
             
-            [self.bridge.eventDispatcher sendDeviceEventWithName:EVENT_NOTIFY body:@{
+            [self sendEventWithName:EVENT_NOTIFY body:@{
                                                                                      kMAC_KEY:mac,
                                                                                      kACTION_KEY:kACTION_GET_BOTTLEMESSAGE,
                                                                                      kGET_EXPIRECTIME:dateStr,
@@ -588,10 +590,10 @@ RCT_EXPORT_METHOD(getBottleMessage:(nonnull NSString *)mac){
 #pragma mark 设置试条信息
 RCT_EXPORT_METHOD(setBottleId:(nonnull NSString *)mac bottleId:(nonnull NSString *)bottleId){
     if ([self getDeviceWithMac:mac]) {
-        __weak typeof(self) weakSelf = self;
+        __weak __typeof__(self) weakSelf = self;
         
         [[self getDeviceWithMac:mac] commandSendBottleID:bottleId.longLongValue DisposeBGSendBottleIDBlock:^(BOOL sendOk) {
-            [weakSelf.bridge.eventDispatcher sendAppEventWithName:EVENT_NOTIFY body:@{
+            [weakSelf sendEventWithName:EVENT_NOTIFY body:@{
                                                                                       kMAC_KEY:mac,
                                                                                       kACTION_KEY:kACTION_SET_BOTTLEID,
                                                                                       }];
@@ -621,7 +623,7 @@ RCT_EXPORT_METHOD(getBottleInfoFromQR:(NSString *)qrCode){
         [mydateFormatter setDateFormat:@"yyyy-MM-dd HH:mm:ss"];
         NSString *dateStr = [mydateFormatter stringFromDate:tempDate];
         
-        [self.bridge.eventDispatcher sendAppEventWithName:EVENT_NOTIFY body:@{
+        [self sendEventWithName:EVENT_NOTIFY body:@{
                                                                               kACTION_KEY:kACTION_CODE_ANALYSIS,
                                                                               kSTRIP_NUM_BG:codeDic[@"StripNum"],
                                                                               kSTRIP_EXPIRETIME_BG:dateStr,
@@ -632,5 +634,6 @@ RCT_EXPORT_METHOD(getBottleInfoFromQR:(NSString *)qrCode){
     }
     
 }
+
 
 @end

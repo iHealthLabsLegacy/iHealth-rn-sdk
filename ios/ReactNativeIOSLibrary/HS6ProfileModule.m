@@ -13,7 +13,6 @@ RCT_EXPORT_MODULE()
 
 #pragma mark
 #pragma mark - constantsToExport
-@synthesize bridge = _bridge;
 
 -(NSDictionary *)constantsToExport{
     
