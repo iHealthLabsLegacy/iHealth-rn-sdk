@@ -5,8 +5,6 @@ var RCTModule = TurboModuleRegistry.get('PT3SBTModule');
 // Without this, sendEventWithName: silently drops all events in New Architecture.
 if (RCTModule) { RCTModule.addListener('event_notify_pt3sbt'); }
 
-function noop() {}
-
 module.exports = {
   Event_Notify: 'event_notify_pt3sbt',
   getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
@@ -18,7 +16,5 @@ module.exports = {
   getHistoryData: (mac) => { RCTModule?.getHistoryData(mac); },
   deleteHistory: (mac) => { RCTModule?.deleteHistory(mac); },
   deleteHistoryData: (mac) => { RCTModule?.deleteHistory(mac); },
-  startMeasure: noop,
-  stopMeasure: noop,
   disconnect: (mac) => { RCTModule?.disconnect(mac); },
 };

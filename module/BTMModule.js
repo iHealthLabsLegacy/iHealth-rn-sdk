@@ -5,8 +5,6 @@ var RCTModule = TurboModuleRegistry.get('BTMModule');
 // Without this, sendEventWithName: silently drops all events in New Architecture.
 if (RCTModule) { RCTModule.addListener('event_notify_btm'); }
 
-function noop() {}
-
 module.exports = {
   Event_Notify: 'event_notify_btm',
   getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
@@ -16,7 +14,5 @@ module.exports = {
   setTemperatureUnit: (mac, unit) => { RCTModule?.setTemperatureUnit(mac, unit); },
   setMeasuringTarget: (mac, target) => { RCTModule?.setMeasuringTarget(mac, target); },
   setOfflineTarget: (mac, target) => { RCTModule?.setOfflineTarget(mac, target); },
-  startMeasure: noop,
-  stopMeasure: noop,
   disconnect: (mac) => { RCTModule?.disconnect(mac); },
 };

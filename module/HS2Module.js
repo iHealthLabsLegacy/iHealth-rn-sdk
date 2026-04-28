@@ -14,22 +14,13 @@ function getOfflineData(mac) {
   RCTModule?.getOfflineData(mac);
 }
 
-function noop() {}
-
 module.exports = {
   Event_Notify: EVENT_NOTIFY,
   getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
   getBattery: (mac) => { RCTModule?.getBattery(mac); },
   getOfflineData: getOfflineData,
   measureOnline: measureOnline,
-  getAnchorDate: noop,
-  setAnchorDate: noop,
-  setUnit: noop,
-  getUnit: noop,
   startMeasure: measureOnline,
-  stopMeasure: noop,
   getHistoryData: getOfflineData,
-  deleteHistoryData: noop,
-  setUserInfo: noop,
   disconnect: (mac) => { RCTModule?.disconnect(mac); },
 };

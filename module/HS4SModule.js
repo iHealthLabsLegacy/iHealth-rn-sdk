@@ -10,18 +10,11 @@ function measureOnline(mac, unit, userId) {
   RCTModule?.measureOnline(mac, unit ?? 0, userId ?? 0);
 }
 
-function noop() {}
-
 module.exports = {
   Event_Notify: EVENT_NOTIFY,
   getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
   getOfflineData: (mac) => { RCTModule?.getOfflineData(mac); },
   measureOnline: measureOnline,
-  getBattery: noop,
-  setUnit: noop,
-  getUnit: noop,
   startMeasure: measureOnline,
-  stopMeasure: noop,
-  setUserInfo: noop,
   disconnect: (mac) => { RCTModule?.disconnect(mac); },
 };

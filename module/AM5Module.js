@@ -5,8 +5,6 @@ var RCTModule = Platform.OS === 'ios' ? TurboModuleRegistry.get('AM5Module') : n
 // Without this, sendEventWithName: silently drops all events in New Architecture.
 if (RCTModule) { RCTModule.addListener('event_notify_am5'); }
 
-function noop() {}
-
 module.exports = {
   Event_Notify: 'event_notify_am5',
   getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
@@ -23,8 +21,5 @@ module.exports = {
   syncHealthData: (mac) => { RCTModule?.syncHealthData(mac); },
   stopSyncHealthData: (mac) => { RCTModule?.stopSyncHealthData(mac); },
   reboot: (mac) => { RCTModule?.reboot(mac); },
-  getBattery: noop,
-  getHistoryData: noop,
-  deleteHistoryData: noop,
   disconnect: (mac) => { RCTModule?.disconnect(mac); },
 };

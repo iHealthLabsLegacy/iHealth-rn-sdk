@@ -233,25 +233,23 @@ if (Platform.OS === 'ios') {
 }
 ```
 
-### Method availability — what is `noop` in v2.0.x
+### API changes per module
 
-To keep older v1.x integrations from crashing, several legacy method names are still exported but resolve to a no-op (they do nothing and return `undefined`). They are listed here so you can update your call sites to the actual native methods.
+Several modules were significantly updated in v2.0.0. Methods that no longer exist in the native layer have been **removed** from the JS API. Use the native methods shown below.
 
-| Module | No-op methods | Actual native methods to use |
-|--------|---------------|------------------------------|
-| `HS6Module` | `getAllConnectedDevices`, `getBattery`, `getUnit`, `startMeasure`, `stopMeasure`, `setUserInfo`, `disconnect` | HS6 is a Wi-Fi scale — use `init`, `setWifi`, `bindDeviceHS6`, `unBindDeviceHS6`, `getToken`, `setUnit(username, unitType)`, `getCloudData`. There is **no** BLE connect/disconnect for HS6. |
-| `BG1Module` | `getAllConnectedDevices`, `getBattery`, `startMeasure`, `stopMeasure`, `getHistoryData`, `disconnect` | Use `sendCode(QR, codeType, testType)` and `getBottleInfoFromQR(QR)`. |
-| `BG5Module` | `stopMeasure` | Measurement stops automatically; use `startMeasure(mac, code)` to start. `getHistoryData` is aliased to `getOfflineData`. |
-| `HS2Module` | `getAnchorDate`, `setAnchorDate`, `setUnit`, `getUnit`, `stopMeasure`, `deleteHistoryData`, `setUserInfo` | Use `measureOnline(mac, unit, userId)` (also accessible via `startMeasure`). `getHistoryData` is aliased to `getOfflineData`. |
-| `HS4SModule` | `getBattery`, `setUnit`, `getUnit`, `stopMeasure`, `setUserInfo` | Use `measureOnline(mac, unit, userId)` (also accessible via `startMeasure`) and `getOfflineData`. |
-| `BTMModule` | `startMeasure`, `stopMeasure` | Use `getMemoryData`, `setStandbyTime`, `setTemperatureUnit`, `setMeasuringTarget`, `setOfflineTarget`. |
-| `NT13BModule` | `getBattery` | Use `measure(mac)` (also accessible via `startMeasure(mac)`). |
-| `TS28BModule` | `getBattery` | Use `measure(mac)` (also accessible via `startMeasure(mac)`). |
-| `PT3SBTModule` | `startMeasure`, `stopMeasure` | Measurement is initiated by the device; use `getHistoryData` / `getHistoryCount` to read results. `deleteHistoryData` is aliased to `deleteHistory`. |
-| `PO1Module` | `startMeasure`, `stopMeasure` | Measurement is initiated by the device; the SDK only relays results via `Event_Notify`. |
-| `AM5Module` | `getBattery`, `getHistoryData`, `deleteHistoryData` | Use `getBasicInfo` (battery is part of the basic info payload), `syncHealthData` / `stopSyncHealthData`, and the new `setUserInfo(mac, year, month, day, weight, height, gender)` signature. |
-
-> Tip: a `noop` method is intentionally silent — it will not throw and will not log. If you previously relied on one of these names, switch to the actual native method shown above.
+| Module | Removed methods | Replacement |
+|--------|-----------------|-------------|
+| `HS6Module` | `getAllConnectedDevices`, `getBattery`, `getUnit`, `startMeasure`, `stopMeasure`, `setUserInfo`, `disconnect` | HS6 is a Wi-Fi scale with no BLE — use `init`, `setWifi`, `bindDeviceHS6`, `unBindDeviceHS6`, `getToken`, `setUnit(username, unitType)`, `getCloudData` |
+| `BG1Module` | `getAllConnectedDevices`, `getBattery`, `startMeasure`, `stopMeasure`, `getHistoryData`, `disconnect` | Use `sendCode(QR, codeType, testType)` and `getBottleInfoFromQR(QR)` |
+| `BG5Module` | `stopMeasure` | Measurement stops automatically. `getHistoryData` still works as an alias for `getOfflineData` |
+| `HS2Module` | `getAnchorDate`, `setAnchorDate`, `setUnit`, `getUnit`, `stopMeasure`, `deleteHistoryData`, `setUserInfo` | Use `measureOnline(mac, unit, userId)` or `startMeasure` (alias). `getHistoryData` still works as an alias for `getOfflineData` |
+| `HS4SModule` | `getBattery`, `setUnit`, `getUnit`, `stopMeasure`, `setUserInfo` | Use `measureOnline(mac, unit, userId)` or `startMeasure` (alias), and `getOfflineData` |
+| `BTMModule` | `startMeasure`, `stopMeasure` | Use `getMemoryData`, `setStandbyTime`, `setTemperatureUnit`, `setMeasuringTarget`, `setOfflineTarget` |
+| `NT13BModule` | `getBattery` | Use `measure(mac)` — `startMeasure` still works as an alias |
+| `TS28BModule` | `getBattery` | Use `measure(mac)` — `startMeasure` still works as an alias |
+| `PT3SBTModule` | `startMeasure`, `stopMeasure` | Measurement is triggered by the device; use `getHistoryData` / `getHistoryCount`. `deleteHistoryData` still works as an alias for `deleteHistory` |
+| `PO1Module` | `startMeasure`, `stopMeasure` | Measurement is triggered by the device; results arrive via `Event_Notify` |
+| `AM5Module` | `getBattery`, `getHistoryData`, `deleteHistoryData` | Use `getBasicInfo` (includes battery), `syncHealthData` / `stopSyncHealthData` |
 
 ### AM5 — `setUserInfo` signature change
 

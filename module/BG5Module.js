@@ -19,8 +19,6 @@ function getOfflineData(mac) {
   RCTModule?.getOfflineData(mac);
 }
 
-function noop() {}
-
 module.exports = {
   Event_Notify: 'event_notify_bg5',
   getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
@@ -31,6 +29,7 @@ module.exports = {
   getBottleId: (mac) => { RCTModule?.getBottleId(mac); },
   startMeasure: (mac, code) => { RCTModule?.startMeasure(mac, code); },
   getOfflineData: getOfflineData,
+  getHistoryData: getOfflineData,
   deleteOfflineData: (mac) => { RCTModule?.deleteOfflineData(mac); },
   setBottleMessageWithInfo: (mac, codeMode, measureMode, qrCode, stripNum, overDate) => {
     RCTModule?.setBottleMessageWithInfo(mac, codeMode, measureMode, qrCode, stripNum, overDate);
@@ -40,6 +39,4 @@ module.exports = {
   disConnect: disconnect,
   disconnect: disconnect,
   getBottleInfoFromQR: (qrCode) => { RCTModule?.getBottleInfoFromQR(qrCode); },
-  stopMeasure: noop,
-  getHistoryData: getOfflineData,
 };

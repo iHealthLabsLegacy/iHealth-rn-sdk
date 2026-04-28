@@ -6,29 +6,13 @@ var RCTModule = TurboModuleRegistry.get('TS28BModule');
 if (RCTModule) { RCTModule.addListener('event_notify_ts28b'); }
 
 function measure(mac) {
-  if (RCTModule?.measure) {
-    RCTModule.measure(mac);
-    return;
-  }
-  if (RCTModule?.startMeasure) {
-    RCTModule.startMeasure(mac);
-  }
+  RCTModule?.measure(mac);
 }
-
-function stopMeasure(mac) {
-  if (RCTModule?.stopMeasure) {
-    RCTModule.stopMeasure(mac);
-  }
-}
-
-function noop() {}
 
 module.exports = {
   Event_Notify: 'event_notify_ts28b',
   getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
-  getBattery: noop,
   measure: measure,
   startMeasure: measure,
-  stopMeasure: stopMeasure,
   disconnect: (mac) => { RCTModule?.disconnect(mac); },
 };
