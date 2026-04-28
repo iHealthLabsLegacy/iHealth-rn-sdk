@@ -21,5 +21,8 @@ module.exports = {
   syncHealthData: (mac) => { RCTModule?.syncHealthData(mac); },
   stopSyncHealthData: (mac) => { RCTModule?.stopSyncHealthData(mac); },
   reboot: (mac) => { RCTModule?.reboot(mac); },
+  getBattery: (mac) => { RCTModule?.getBattery?.(mac); },
+  getHistoryData: (mac) => { RCTModule?.getHistoryData?.(mac); },
+  deleteHistoryData: (mac) => { RCTModule?.deleteHistoryData?.(mac); },
   disconnect: (mac) => { RCTModule?.disconnect(mac); },
 };

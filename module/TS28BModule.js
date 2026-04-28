@@ -12,7 +12,9 @@ function measure(mac) {
 module.exports = {
   Event_Notify: 'event_notify_ts28b',
   getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
+  getBattery: (mac) => { RCTModule?.getBattery?.(mac); },
   measure: measure,
   startMeasure: measure,
+  stopMeasure: (mac) => { RCTModule?.stopMeasure?.(mac); },
   disconnect: (mac) => { RCTModule?.disconnect(mac); },
 };

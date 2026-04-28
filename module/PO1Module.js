@@ -9,5 +9,7 @@ module.exports = {
   Event_Notify: 'event_notify_po1',
   getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
   getBattery: (mac) => { RCTModule?.getBattery(mac); },
+  startMeasure: (mac) => { RCTModule?.startMeasure?.(mac); },
+  stopMeasure: (mac) => { RCTModule?.stopMeasure?.(mac); },
   disconnect: (mac) => { RCTModule?.disconnect(mac); },
 };

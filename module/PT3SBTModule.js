@@ -16,5 +16,7 @@ module.exports = {
   getHistoryData: (mac) => { RCTModule?.getHistoryData(mac); },
   deleteHistory: (mac) => { RCTModule?.deleteHistory(mac); },
   deleteHistoryData: (mac) => { RCTModule?.deleteHistory(mac); },
+  startMeasure: (mac) => { RCTModule?.startMeasure?.(mac); },
+  stopMeasure: (mac) => { RCTModule?.stopMeasure?.(mac); },
   disconnect: (mac) => { RCTModule?.disconnect(mac); },
 };

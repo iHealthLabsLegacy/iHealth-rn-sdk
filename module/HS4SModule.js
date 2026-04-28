@@ -15,6 +15,11 @@ module.exports = {
   getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
   getOfflineData: (mac) => { RCTModule?.getOfflineData(mac); },
   measureOnline: measureOnline,
+  getBattery: (mac) => { RCTModule?.getBattery?.(mac); },
+  setUnit: (mac, unit) => { RCTModule?.setUnit?.(mac, unit); },
+  getUnit: (mac) => { RCTModule?.getUnit?.(mac); },
   startMeasure: measureOnline,
+  stopMeasure: (mac) => { RCTModule?.stopMeasure?.(mac); },
+  setUserInfo: (mac, age, height, weight, male) => { RCTModule?.setUserInfo?.(mac, age, height, weight, male); },
   disconnect: (mac) => { RCTModule?.disconnect(mac); },
 };

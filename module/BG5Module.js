@@ -28,6 +28,7 @@ module.exports = {
   setUnit: (mac, unitType) => { RCTModule?.setUnit(mac, unitType); },
   getBottleId: (mac) => { RCTModule?.getBottleId(mac); },
   startMeasure: (mac, code) => { RCTModule?.startMeasure(mac, code); },
+  stopMeasure: (mac) => { RCTModule?.stopMeasure?.(mac); },
   getOfflineData: getOfflineData,
   getHistoryData: getOfflineData,
   deleteOfflineData: (mac) => { RCTModule?.deleteOfflineData(mac); },

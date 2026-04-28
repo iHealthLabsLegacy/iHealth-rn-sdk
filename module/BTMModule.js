@@ -14,5 +14,7 @@ module.exports = {
   setTemperatureUnit: (mac, unit) => { RCTModule?.setTemperatureUnit(mac, unit); },
   setMeasuringTarget: (mac, target) => { RCTModule?.setMeasuringTarget(mac, target); },
   setOfflineTarget: (mac, target) => { RCTModule?.setOfflineTarget(mac, target); },
+  startMeasure: (mac) => { RCTModule?.startMeasure?.(mac); },
+  stopMeasure: (mac) => { RCTModule?.stopMeasure?.(mac); },
   disconnect: (mac) => { RCTModule?.disconnect(mac); },
 };

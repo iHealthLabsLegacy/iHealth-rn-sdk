@@ -23,4 +23,11 @@ module.exports = {
   getCloudData: (clientId, clientSecret, username, ts, pageSize) => {
     RCTModule?.getCloudData(clientId, clientSecret, username, ts, pageSize);
   },
+  getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices?.(); },
+  getBattery: (mac) => { RCTModule?.getBattery?.(mac); },
+  getUnit: (mac) => { RCTModule?.getUnit?.(mac); },
+  startMeasure: (mac) => { RCTModule?.startMeasure?.(mac); },
+  stopMeasure: (mac) => { RCTModule?.stopMeasure?.(mac); },
+  setUserInfo: (mac, age, height, weight, male) => { RCTModule?.setUserInfo?.(mac, age, height, weight, male); },
+  disconnect: (mac) => { RCTModule?.disconnect?.(mac); },
 };
