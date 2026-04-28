@@ -1,12 +1,13 @@
 'use strict';
-var { TurboModuleRegistry } = require('react-native');
+var { Platform, TurboModuleRegistry } = require('react-native');
 var RCTModule = TurboModuleRegistry.get('BP7Module');
+var EVENT_NOTIFY = Platform.OS === 'android' ? 'event_notify_bp7' : 'BP7.MODULE.NOTIFY';
 // Pre-call addListener via TurboModule JSI to ensure _listenerCount > 0.
 // Without this, sendEventWithName: silently drops all events in New Architecture.
-if (RCTModule) { RCTModule.addListener('BP7.MODULE.NOTIFY'); }
+if (RCTModule) { RCTModule.addListener(EVENT_NOTIFY); }
 
 module.exports = {
-  Event_Notify: 'BP7.MODULE.NOTIFY',
+  Event_Notify: EVENT_NOTIFY,
   getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
   conformAngle: (mac) => { RCTModule?.conformAngle(mac); },
   startMeasure: (mac) => { RCTModule?.startMeasure(mac); },

@@ -1,12 +1,13 @@
 'use strict';
-var { TurboModuleRegistry } = require('react-native');
+var { Platform, TurboModuleRegistry } = require('react-native');
 var RCTModule = TurboModuleRegistry.get('HS2SProModule');
+var EVENT_NOTIFY = Platform.OS === 'android' ? 'event_notify_hs2spro' : 'HS2SPro.MODULE.NOTIFY';
 // Pre-call addListener via TurboModule JSI to ensure _listenerCount > 0.
 // Without this, sendEventWithName: silently drops all events in New Architecture.
-if (RCTModule) { RCTModule.addListener('HS2SPro.MODULE.NOTIFY'); }
+if (RCTModule) { RCTModule.addListener(EVENT_NOTIFY); }
 
 module.exports = {
-  Event_Notify: 'HS2SPro.MODULE.NOTIFY',
+  Event_Notify: EVENT_NOTIFY,
   getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
   getDeviceInfo: (mac) => { RCTModule?.getDeviceInfo(mac); },
   getBattery: (mac) => { RCTModule?.getBattery(mac); },

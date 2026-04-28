@@ -143,17 +143,19 @@ const scanEvent   = iHealthDeviceManagerModule.Event_Scan_Device; // 'event_scan
 
 | Module | `Event_Notify` value |
 |--------|----------------------|
-| `BP5Module` | `'BP5.MODULE.NOTIFY'` |
-| `BP5SModule` | `'BP5S.MODULE.NOTIFY'` |
-| `BP3LModule` | `'BP3L.MODULE.NOTIFY'` |
-| `BP7Module` | `'BP7.MODULE.NOTIFY'` |
-| `BP7SModule` | `'BP7S.MODULE.NOTIFY'` |
+| `BP5Module` | iOS: `'BP5.MODULE.NOTIFY'`, Android: `'event_notify_bp5'` |
+| `BP5SModule` | iOS: `'BP5S.MODULE.NOTIFY'`, Android: `'event_notify_bp5s'` |
+| `BP3LModule` | iOS: `'BP3L.MODULE.NOTIFY'`, Android: `'event_notify_bp3l'` |
+| `BP7Module` | iOS: `'BP7.MODULE.NOTIFY'`, Android: `'event_notify_bp7'` |
+| `BP7SModule` | iOS: `'BP7S.MODULE.NOTIFY'`, Android: `'event_notify_bp7s'` |
 | `BP550BTModule` | `'event_notify_bp550bt'` |
 | `PO3Module` | `'event_notify_po3'` |
 | `PO1Module` | `'event_notify_po1'` |
-| `HS2SModule` | `'HS2S.MODULE.NOTIFY'` |
-| `HS2SProModule` | `'HS2SPro.MODULE.NOTIFY'` |
-| `HS4SModule` | `'HS4.MODULE.NOTIFY'` |
+| `HS2Module` | iOS: `'HS2.MODULE.NOTIFY'`, Android: `'event_notify_hs2'` |
+| `HS2SModule` | iOS: `'HS2S.MODULE.NOTIFY'`, Android: `'event_notify_hs2s'` |
+| `HS2SProModule` | iOS: `'HS2SPro.MODULE.NOTIFY'`, Android: `'event_notify_hs2spro'` |
+| `HS4SModule` | iOS: `'HS4.MODULE.NOTIFY'`, Android: `'event_notify_hs4s'` |
+| `HS6Module` | iOS: `'HS6.MODULE.NOTIFY'`, Android: `'event_notify_hs6'` |
 | `BG5SModule` | `'event_notify_bg5s'` |
 | `BG5Module` | `'event_notify_bg5'` |
 | `BG1Module` | `'event_notify_bg1'` |
@@ -167,6 +169,8 @@ const scanEvent   = iHealthDeviceManagerModule.Event_Scan_Device; // 'event_scan
 | `TS28BModule` | `'event_notify_ts28b'` |
 | `NT13BModule` | `'event_notify_nt13b'` |
 | `PT3SBTModule` | `'event_notify_pt3sbt'` |
+
+Always use the exported `Module.Event_Notify` constant instead of hard-coding the event string. Some modules expose platform-specific notify names for compatibility with existing native implementations.
 
 ---
 
@@ -217,6 +221,38 @@ import { Platform } from 'react-native';
 if (Platform.OS === 'ios') {
   ECGModule.startMeasure(mac);
 }
+```
+
+### Method availability — what is `noop` in v2.0.x
+
+To keep older v1.x integrations from crashing, several legacy method names are still exported but resolve to a no-op (they do nothing and return `undefined`). They are listed here so you can update your call sites to the actual native methods.
+
+| Module | No-op methods | Actual native methods to use |
+|--------|---------------|------------------------------|
+| `HS6Module` | `getAllConnectedDevices`, `getBattery`, `getUnit`, `startMeasure`, `stopMeasure`, `setUserInfo`, `disconnect` | HS6 is a Wi-Fi scale — use `init`, `setWifi`, `bindDeviceHS6`, `unBindDeviceHS6`, `getToken`, `setUnit(username, unitType)`, `getCloudData`. There is **no** BLE connect/disconnect for HS6. |
+| `BG1Module` | `getAllConnectedDevices`, `getBattery`, `startMeasure`, `stopMeasure`, `getHistoryData`, `disconnect` | Use `sendCode(QR, codeType, testType)` and `getBottleInfoFromQR(QR)`. |
+| `BG5Module` | `stopMeasure` | Measurement stops automatically; use `startMeasure(mac, code)` to start. `getHistoryData` is aliased to `getOfflineData`. |
+| `HS2Module` | `getAnchorDate`, `setAnchorDate`, `setUnit`, `getUnit`, `stopMeasure`, `deleteHistoryData`, `setUserInfo` | Use `measureOnline(mac, unit, userId)` (also accessible via `startMeasure`). `getHistoryData` is aliased to `getOfflineData`. |
+| `HS4SModule` | `getBattery`, `setUnit`, `getUnit`, `stopMeasure`, `setUserInfo` | Use `measureOnline(mac, unit, userId)` (also accessible via `startMeasure`) and `getOfflineData`. |
+| `BTMModule` | `startMeasure`, `stopMeasure` | Use `getMemoryData`, `setStandbyTime`, `setTemperatureUnit`, `setMeasuringTarget`, `setOfflineTarget`. |
+| `NT13BModule` | `getBattery` | Use `measure(mac)` (also accessible via `startMeasure(mac)`). |
+| `TS28BModule` | `getBattery` | Use `measure(mac)` (also accessible via `startMeasure(mac)`). |
+| `PT3SBTModule` | `startMeasure`, `stopMeasure` | Measurement is initiated by the device; use `getHistoryData` / `getHistoryCount` to read results. `deleteHistoryData` is aliased to `deleteHistory`. |
+| `PO1Module` | `startMeasure`, `stopMeasure` | Measurement is initiated by the device; the SDK only relays results via `Event_Notify`. |
+| `AM5Module` | `getBattery`, `getHistoryData`, `deleteHistoryData` | Use `getBasicInfo` (battery is part of the basic info payload), `syncHealthData` / `stopSyncHealthData`, and the new `setUserInfo(mac, year, month, day, weight, height, gender)` signature. |
+
+> Tip: a `noop` method is intentionally silent — it will not throw and will not log. If you previously relied on one of these names, switch to the actual native method shown above.
+
+### AM5 — `setUserInfo` signature change
+
+`AM5Module.setUserInfo` now matches the native iOS signature exactly:
+
+```javascript
+// Before ❌ (v1.x)
+AM5Module.setUserInfo(mac, age, height, weight, male);
+
+// After ✅ (v2.0.1+)
+AM5Module.setUserInfo(mac, year, month, day, weight, height, gender);
 ```
 
 ---

@@ -5,11 +5,30 @@ var RCTModule = TurboModuleRegistry.get('TS28BModule');
 // Without this, sendEventWithName: silently drops all events in New Architecture.
 if (RCTModule) { RCTModule.addListener('event_notify_ts28b'); }
 
+function measure(mac) {
+  if (RCTModule?.measure) {
+    RCTModule.measure(mac);
+    return;
+  }
+  if (RCTModule?.startMeasure) {
+    RCTModule.startMeasure(mac);
+  }
+}
+
+function stopMeasure(mac) {
+  if (RCTModule?.stopMeasure) {
+    RCTModule.stopMeasure(mac);
+  }
+}
+
+function noop() {}
+
 module.exports = {
   Event_Notify: 'event_notify_ts28b',
   getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
-  getBattery: (mac) => { RCTModule?.getBattery(mac); },
-  startMeasure: (mac) => { RCTModule?.startMeasure(mac); },
-  stopMeasure: (mac) => { RCTModule?.stopMeasure(mac); },
+  getBattery: noop,
+  measure: measure,
+  startMeasure: measure,
+  stopMeasure: stopMeasure,
   disconnect: (mac) => { RCTModule?.disconnect(mac); },
 };
