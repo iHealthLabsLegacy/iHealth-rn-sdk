@@ -5,11 +5,16 @@ var RCTModule = TurboModuleRegistry.get('NT13BModule');
 // Without this, sendEventWithName: silently drops all events in New Architecture.
 if (RCTModule) { RCTModule.addListener('event_notify_nt13b'); }
 
+function measure(mac) {
+  RCTModule?.measure(mac);
+}
+
 module.exports = {
   Event_Notify: 'event_notify_nt13b',
   getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
-  getBattery: (mac) => { RCTModule?.getBattery(mac); },
-  startMeasure: (mac) => { RCTModule?.startMeasure(mac); },
-  stopMeasure: (mac) => { RCTModule?.stopMeasure(mac); },
+  getBattery: (mac) => { RCTModule?.getBattery?.(mac); },
+  measure: measure,
+  startMeasure: measure,
+  stopMeasure: (mac) => { RCTModule?.stopMeasure?.(mac); },
   disconnect: (mac) => { RCTModule?.disconnect(mac); },
 };

@@ -5,6 +5,16 @@ var RCTModule = TurboModuleRegistry.get('BG5SModule');
 // Without this, sendEventWithName: silently drops all events in New Architecture.
 if (RCTModule) { RCTModule.addListener('event_notify_bg5s'); }
 
+function disconnect(mac) {
+  if (RCTModule?.disConnect) {
+    RCTModule.disConnect(mac);
+    return;
+  }
+  if (RCTModule?.disconnect) {
+    RCTModule.disconnect(mac);
+  }
+}
+
 module.exports = {
   Event_Notify: 'event_notify_bg5s',
   getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
@@ -17,6 +27,6 @@ module.exports = {
   getOfflineData: (mac) => { RCTModule?.getOfflineData(mac); },
   startMeasure: (mac, type) => { RCTModule?.startMeasure(mac, type); },
   adjustOfflineData: (mac, timeString, array) => { RCTModule?.adjustOfflineData(mac, timeString, array); },
-  disConnect: (mac) => { RCTModule?.disConnect(mac); },
-  disconnect: (mac) => { RCTModule?.disConnect(mac); },
+  disConnect: disconnect,
+  disconnect: disconnect,
 };

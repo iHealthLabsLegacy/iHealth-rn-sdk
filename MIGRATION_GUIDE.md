@@ -141,32 +141,46 @@ const scanEvent   = iHealthDeviceManagerModule.Event_Scan_Device; // 'event_scan
 
 #### Device module `Event_Notify` values
 
-| Module | `Event_Notify` value |
-|--------|----------------------|
-| `BP5Module` | `'BP5.MODULE.NOTIFY'` |
-| `BP5SModule` | `'BP5S.MODULE.NOTIFY'` |
-| `BP3LModule` | `'BP3L.MODULE.NOTIFY'` |
-| `BP7Module` | `'BP7.MODULE.NOTIFY'` |
-| `BP7SModule` | `'BP7S.MODULE.NOTIFY'` |
-| `BP550BTModule` | `'event_notify_bp550bt'` |
-| `PO3Module` | `'event_notify_po3'` |
-| `PO1Module` | `'event_notify_po1'` |
-| `HS2SModule` | `'HS2S.MODULE.NOTIFY'` |
-| `HS2SProModule` | `'HS2SPro.MODULE.NOTIFY'` |
-| `HS4SModule` | `'HS4.MODULE.NOTIFY'` |
-| `BG5SModule` | `'event_notify_bg5s'` |
-| `BG5Module` | `'event_notify_bg5'` |
-| `BG1Module` | `'event_notify_bg1'` |
-| `BG1AModule` | `'event_notify_bg1a'` |
-| `BG1SModule` | `'event_notify_bg1s'` |
-| `AM3SModule` | `'event_notify_am3s'` |
-| `AM4Module` | `'event_notify_am4'` |
-| `AM5Module` | `'event_notify_am5'` |
-| `AM6Module` | `'event_notify_am6'` |
-| `BTMModule` | `'event_notify_btm'` |
-| `TS28BModule` | `'event_notify_ts28b'` |
-| `NT13BModule` | `'event_notify_nt13b'` |
-| `PT3SBTModule` | `'event_notify_pt3sbt'` |
+Always use `Module.Event_Notify` — **never hard-code the event string**. The SDK resolves the correct value for the current platform automatically; your code requires no `Platform.OS` check.
+
+```javascript
+// ✅ correct — works on both iOS and Android
+emitter.addListener(BP5Module.Event_Notify, handler);
+
+// ❌ wrong — hard-coded string breaks on one platform
+emitter.addListener('BP5.MODULE.NOTIFY', handler);
+```
+
+| Module | JS constant to use |
+|--------|--------------------|
+| `BP5Module` | `BP5Module.Event_Notify` |
+| `BP5SModule` | `BP5SModule.Event_Notify` |
+| `BP3LModule` | `BP3LModule.Event_Notify` |
+| `BP7Module` | `BP7Module.Event_Notify` |
+| `BP7SModule` | `BP7SModule.Event_Notify` |
+| `BP550BTModule` | `BP550BTModule.Event_Notify` |
+| `PO3Module` | `PO3Module.Event_Notify` |
+| `PO1Module` | `PO1Module.Event_Notify` |
+| `HS2Module` | `HS2Module.Event_Notify` |
+| `HS2SModule` | `HS2SModule.Event_Notify` |
+| `HS2SProModule` | `HS2SProModule.Event_Notify` |
+| `HS4SModule` | `HS4SModule.Event_Notify` |
+| `HS6Module` | `HS6Module.Event_Notify` |
+| `BG5SModule` | `BG5SModule.Event_Notify` |
+| `BG5Module` | `BG5Module.Event_Notify` |
+| `BG1Module` | `BG1Module.Event_Notify` |
+| `BG1AModule` | `BG1AModule.Event_Notify` |
+| `BG1SModule` | `BG1SModule.Event_Notify` |
+| `AM3SModule` | `AM3SModule.Event_Notify` |
+| `AM4Module` | `AM4Module.Event_Notify` |
+| `AM5Module` | `AM5Module.Event_Notify` |
+| `AM6Module` | `AM6Module.Event_Notify` |
+| `BTMModule` | `BTMModule.Event_Notify` |
+| `TS28BModule` | `TS28BModule.Event_Notify` |
+| `NT13BModule` | `NT13BModule.Event_Notify` |
+| `PT3SBTModule` | `PT3SBTModule.Event_Notify` |
+
+> **Note for SDK maintainers:** Some modules (BP3L/BP5/BP5S/BP7/BP7S/HS2/HS2S/HS2SPro/HS4S/HS6) expose different underlying event name strings on iOS vs Android due to legacy native implementations. The JS layer resolves the correct value via `Platform.OS` at load time, so callers never need to handle this difference.
 
 ---
 
@@ -217,6 +231,35 @@ import { Platform } from 'react-native';
 if (Platform.OS === 'ios') {
   ECGModule.startMeasure(mac);
 }
+```
+
+### New and renamed methods per module
+
+All v1.x method names remain valid — existing code needs no changes. The following modules gained new native methods in v2.0.0; use them for new integrations.
+
+| Module | New / recommended methods | Notes |
+|--------|--------------------------|-------|
+| `HS6Module` | `init`, `setWifi`, `bindDeviceHS6`, `unBindDeviceHS6`, `getToken`, `getCloudData` | Wi-Fi scale — no BLE connect/disconnect |
+| `BG1Module` | `sendCode(QR, codeType, testType)`, `getBottleInfoFromQR(QR)` | Scan-to-measure flow |
+| `BG5Module` | `holdLink`, `setTime`, `setUnit`, `getBottleId`, `getOfflineData`, `deleteOfflineData`, `setBottleMessageWithInfo`, `getBottleMessage`, `setBottleId`, `getBottleInfoFromQR` | `getHistoryData` is kept as alias for `getOfflineData` |
+| `HS2Module` | `measureOnline(mac, unit, userId)`, `getOfflineData` | `startMeasure` calls `measureOnline`; `getHistoryData` is kept as alias for `getOfflineData` |
+| `HS4SModule` | `measureOnline(mac, unit, userId)`, `getOfflineData` | `startMeasure` calls `measureOnline` |
+| `BTMModule` | `getMemoryData`, `setStandbyTime`, `setTemperatureUnit`, `setMeasuringTarget`, `setOfflineTarget` | — |
+| `NT13BModule` | `measure(mac)` | `startMeasure` calls `measure` |
+| `TS28BModule` | `measure(mac)` | `startMeasure` calls `measure` |
+| `PT3SBTModule` | `setTime`, `setUnit`, `getUnit`, `getHistoryCount`, `getHistoryData`, `deleteHistory` | `deleteHistoryData` is kept as alias for `deleteHistory` |
+| `AM5Module` | `unBindDevice`, `getBasicInfo`, `setTime`, `setUnit`, `setHandWearMode`, `getLiveData`, `syncHealthData`, `stopSyncHealthData`, `reboot` | — |
+
+### AM5 — `setUserInfo` signature change
+
+`AM5Module.setUserInfo` now matches the native iOS signature exactly:
+
+```javascript
+// Before ❌ (v1.x)
+AM5Module.setUserInfo(mac, age, height, weight, male);
+
+// After ✅ (v2.0.1+)
+AM5Module.setUserInfo(mac, year, month, day, weight, height, gender);
 ```
 
 ---

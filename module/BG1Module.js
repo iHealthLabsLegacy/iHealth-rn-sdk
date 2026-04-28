@@ -7,10 +7,12 @@ if (RCTModule) { RCTModule.addListener('event_notify_bg1'); }
 
 module.exports = {
   Event_Notify: 'event_notify_bg1',
-  getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices(); },
-  getBattery: (mac) => { RCTModule?.getBattery(mac); },
-  startMeasure: (mac) => { RCTModule?.startMeasure(mac); },
-  stopMeasure: (mac) => { RCTModule?.stopMeasure(mac); },
-  getHistoryData: (mac) => { RCTModule?.getHistoryData(mac); },
-  disconnect: (mac) => { RCTModule?.disconnect(mac); },
+  sendCode: (QR, codeType, testType) => { RCTModule?.sendCode(QR, codeType, testType); },
+  getBottleInfoFromQR: (QR) => { RCTModule?.getBottleInfoFromQR(QR); },
+  getAllConnectedDevices: () => { RCTModule?.getAllConnectedDevices?.(); },
+  getBattery: (mac) => { RCTModule?.getBattery?.(mac); },
+  startMeasure: (mac) => { RCTModule?.startMeasure?.(mac); },
+  stopMeasure: (mac) => { RCTModule?.stopMeasure?.(mac); },
+  getHistoryData: (mac) => { RCTModule?.getHistoryData?.(mac); },
+  disconnect: (mac) => { RCTModule?.disconnect?.(mac); },
 };
