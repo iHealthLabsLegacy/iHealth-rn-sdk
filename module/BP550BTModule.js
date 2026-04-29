@@ -3,7 +3,9 @@ var { TurboModuleRegistry } = require('react-native');
 var RCTModule = TurboModuleRegistry.get('BP550BTModule');
 // Pre-call addListener via TurboModule JSI to ensure _listenerCount > 0.
 // Without this, sendEventWithName: silently drops all events in New Architecture.
-if (RCTModule) { RCTModule.addListener('event_notify_bp550bt'); }
+if (RCTModule && typeof RCTModule.addListener === 'function') {
+  try { RCTModule.addListener('event_notify_bp550bt'); } catch (_) {}
+}
 
 module.exports = {
   Event_Notify: 'event_notify_bp550bt',

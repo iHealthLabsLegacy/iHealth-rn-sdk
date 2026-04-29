@@ -6,7 +6,9 @@ var RCTModule = TurboModuleRegistry.get('HS6Module');
 var EVENT_NOTIFY = Platform.OS === 'android' ? 'event_notify_hs6' : 'HS6.MODULE.NOTIFY';
 // Pre-call addListener via TurboModule JSI to ensure _listenerCount > 0.
 // Without this, sendEventWithName: silently drops all events in New Architecture.
-if (RCTModule) { RCTModule.addListener(EVENT_NOTIFY); }
+if (RCTModule && typeof RCTModule.addListener === 'function') {
+  try { RCTModule.addListener(EVENT_NOTIFY); } catch (_) {}
+}
 
 module.exports = {
   Event_Notify: EVENT_NOTIFY,

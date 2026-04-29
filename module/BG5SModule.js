@@ -3,7 +3,9 @@ var { TurboModuleRegistry } = require('react-native');
 var RCTModule = TurboModuleRegistry.get('BG5SModule');
 // Pre-call addListener via TurboModule JSI to ensure _listenerCount > 0.
 // Without this, sendEventWithName: silently drops all events in New Architecture.
-if (RCTModule) { RCTModule.addListener('event_notify_bg5s'); }
+if (RCTModule && typeof RCTModule.addListener === 'function') {
+  try { RCTModule.addListener('event_notify_bg5s'); } catch (_) {}
+}
 
 function disconnect(mac) {
   if (RCTModule?.disConnect) {

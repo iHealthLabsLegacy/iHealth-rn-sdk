@@ -18,7 +18,8 @@
   ],
   "scripts": {
     "test": "node scripts/validate-modules.js",
-    "validate": "node scripts/validate-modules.js"
+    "validate": "node scripts/validate-modules.js",
+    "prepublishOnly": "node scripts/validate-modules.js"
   },
   "keywords": [
     "react-native",

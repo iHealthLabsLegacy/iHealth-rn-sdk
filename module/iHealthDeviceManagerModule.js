@@ -9,7 +9,7 @@ var RCTModule = TurboModuleRegistry.get('iHealthDeviceManagerModule');
 // sendEventWithName: silently drops all events.
 // Fix: pre-call addListener via TurboModuleRegistry (JSI path) for every
 // supported event to ensure _listenerCount > 0 before any event fires.
-if (RCTModule) {
+if (RCTModule && typeof RCTModule.addListener === 'function') {
     [
         'event_scan_device',
         'event_scan_finish',
@@ -19,7 +19,7 @@ if (RCTModule) {
         'event_authenticate_result',
         'event_notify_ts28b',
         'event_notify_bg1',
-    ].forEach(function(name) { RCTModule.addListener(name); });
+    ].forEach(function(name) { try { RCTModule.addListener(name); } catch (_) {} });
 }
 
 module.exports = {
