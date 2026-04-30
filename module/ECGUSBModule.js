@@ -3,7 +3,9 @@ var { TurboModuleRegistry, Platform } = require('react-native');
 var RCTModule = Platform.OS === 'ios' ? TurboModuleRegistry.get('ECGUSBModule') : null;
 // Pre-call addListener via TurboModule JSI to ensure _listenerCount > 0.
 // Without this, sendEventWithName: silently drops all events in New Architecture.
-if (RCTModule) { RCTModule.addListener('event_notify_ecgusb'); }
+if (RCTModule && typeof RCTModule.addListener === 'function') {
+  try { RCTModule.addListener('event_notify_ecgusb'); } catch (_) {}
+}
 
 module.exports = {
   Event_Notify: 'event_notify_ecgusb',

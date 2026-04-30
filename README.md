@@ -770,6 +770,13 @@ A: If you are upgrading to React Native >= 0.76 and enabling the New Architectur
 
 ## Release Notes
 
+### v2.0.1
+- Hardened SDK module initialization: `RCTModule.addListener()` calls are now wrapped in `typeof` checks and `try/catch` to prevent rare crashes during React Native bootstrap on the Old Architecture
+- All native method calls use optional chaining (`RCTModule?.method?.()`) so JS modules degrade gracefully when a method is unavailable on a given platform (forward/backward compatibility)
+- Aligned Android / iOS event names in JS modules so cross-platform code can subscribe to a single `Event_Notify` constant
+- Added a static module validation script — run with `npm test` (162 checks across all 49 modules)
+- No public API changes vs. v2.0.0 — fully drop-in upgrade
+
 ### v2.0.0
 - **Full support for React Native New Architecture (TurboModules / Fabric)**
 - Minimum React Native version bumped to **>= 0.76.0**

@@ -3,7 +3,19 @@ var { TurboModuleRegistry } = require('react-native');
 var RCTModule = TurboModuleRegistry.get('BG5SModule');
 // Pre-call addListener via TurboModule JSI to ensure _listenerCount > 0.
 // Without this, sendEventWithName: silently drops all events in New Architecture.
-if (RCTModule) { RCTModule.addListener('event_notify_bg5s'); }
+if (RCTModule && typeof RCTModule.addListener === 'function') {
+  try { RCTModule.addListener('event_notify_bg5s'); } catch (_) {}
+}
+
+function disconnect(mac) {
+  if (RCTModule?.disConnect) {
+    RCTModule.disConnect(mac);
+    return;
+  }
+  if (RCTModule?.disconnect) {
+    RCTModule.disconnect(mac);
+  }
+}
 
 module.exports = {
   Event_Notify: 'event_notify_bg5s',
@@ -17,6 +29,6 @@ module.exports = {
   getOfflineData: (mac) => { RCTModule?.getOfflineData(mac); },
   startMeasure: (mac, type) => { RCTModule?.startMeasure(mac, type); },
   adjustOfflineData: (mac, timeString, array) => { RCTModule?.adjustOfflineData(mac, timeString, array); },
-  disConnect: (mac) => { RCTModule?.disConnect(mac); },
-  disconnect: (mac) => { RCTModule?.disConnect(mac); },
+  disConnect: disconnect,
+  disconnect: disconnect,
 };

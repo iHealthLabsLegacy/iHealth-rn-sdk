@@ -1,6 +1,6 @@
 {
   "name": "@ihealth/ihealthlibrary-react-native",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "iHealth React Native SDK - supports React Native New Architecture (TurboModules) and Old Architecture",
   "main": "index.js",
   "files": [
@@ -17,7 +17,9 @@
     "README.md"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node scripts/validate-modules.js",
+    "validate": "node scripts/validate-modules.js",
+    "prepublishOnly": "node scripts/validate-modules.js"
   },
   "keywords": [
     "react-native",
